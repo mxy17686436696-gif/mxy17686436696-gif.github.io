@@ -1,0 +1,1796 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>灵签问卦</title>
+<style>
+  :root {
+    --bg: #1a1410;
+    --paper: #f5e6c8;
+    --paper-dark: #d4c5a9;
+    --wood: #8B6914;
+    --wood-dark: #5c3d1a;
+    --wood-light: #c49a3c;
+    --red: #c41e3a;
+    --red-dark: #8b1529;
+    --gold: #d4a843;
+    --gold-light: #f0d68a;
+    --ink: #2c1810;
+    --ink-light: #4a3728;
+    --text: #3c2415;
+    --text-light: #f5e6c8;
+    --tube-color: #6B3A2A;
+    --tube-dark: #3d1f14;
+    --tube-light: #8B5E3C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'ZCOOL XiaoWei', 'KaiTi', 'STKaiti', 'KaiTi SC', serif;
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 50% 30%, rgba(139, 105, 20, 0.15) 0%, transparent 70%),
+      radial-gradient(ellipse at 20% 80%, rgba(139, 105, 20, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139, 105, 20, 0.06) 0%, transparent 50%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Decorative background clouds */
+  .bg-decoration {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cloud-left {
+    top: 10%;
+    left: 5%;
+    width: 120px;
+    height: 60px;
+    opacity: 0.12;
+    background: radial-gradient(ellipse at center, var(--gold) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(20px);
+  }
+  .cloud-right {
+    bottom: 15%;
+    right: 8%;
+    width: 100px;
+    height: 50px;
+    opacity: 0.1;
+    background: radial-gradient(ellipse at center, var(--gold) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(18px);
+  }
+  .cloud-top {
+    top: 5%;
+    right: 20%;
+    width: 80px;
+    height: 40px;
+    opacity: 0.08;
+    background: radial-gradient(ellipse at center, var(--gold) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(15px);
+  }
+
+  /* Main container */
+  .main-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+
+  /* Title */
+  .title-area {
+    text-align: center;
+  }
+  .title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 48px;
+    color: var(--gold);
+    text-shadow: 0 2px 8px rgba(212, 168, 67, 0.3), 0 0 40px rgba(212, 168, 67, 0.1);
+    letter-spacing: 12px;
+    line-height: 1.4;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: rgba(212, 168, 67, 0.6);
+    letter-spacing: 6px;
+    margin-top: 6px;
+  }
+
+  /* Tube area */
+  .tube-area {
+    position: relative;
+    width: 260px;
+    height: 420px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  /* Tube body */
+  .tube-wrapper {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s ease-out;
+    transform-origin: bottom center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tube-wrapper:hover .tube-body {
+    filter: brightness(1.1);
+  }
+  .tube-wrapper:active {
+    transform: scale(0.97);
+  }
+
+  /* Shake states */
+  .tube-wrapper.shaking-light {
+    animation: shake-light 0.4s ease-in-out;
+  }
+  .tube-wrapper.shaking-medium {
+    animation: shake-medium 0.35s ease-in-out;
+  }
+  .tube-wrapper.shaking-heavy {
+    animation: shake-heavy 0.3s ease-in-out;
+  }
+  .tube-wrapper.shaking-final {
+    animation: shake-final 0.5s ease-in-out;
+  }
+  .tube-wrapper.stick-out {
+    animation: tube-recoil 0.6s ease-out;
+  }
+
+  @keyframes shake-light {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    15% { transform: translateX(-12px) rotate(-2deg); }
+    30% { transform: translateX(12px) rotate(2deg); }
+    45% { transform: translateX(-8px) rotate(-1.5deg); }
+    60% { transform: translateX(8px) rotate(1.5deg); }
+    75% { transform: translateX(-4px) rotate(-0.5deg); }
+    90% { transform: translateX(4px) rotate(0.5deg); }
+  }
+  @keyframes shake-medium {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-25px) rotate(-5deg); }
+    20% { transform: translateX(25px) rotate(5deg); }
+    30% { transform: translateX(-20px) rotate(-4deg); }
+    40% { transform: translateX(20px) rotate(4deg); }
+    50% { transform: translateX(-15px) rotate(-3deg); }
+    60% { transform: translateX(15px) rotate(3deg); }
+    70% { transform: translateX(-8px) rotate(-2deg); }
+    80% { transform: translateX(8px) rotate(2deg); }
+    90% { transform: translateX(-3px) rotate(0deg); }
+  }
+  @keyframes shake-heavy {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-35px) rotate(-8deg); }
+    20% { transform: translateX(35px) rotate(8deg); }
+    30% { transform: translateX(-28px) rotate(-6deg); }
+    40% { transform: translateX(28px) rotate(6deg); }
+    50% { transform: translateX(-20px) rotate(-4deg); }
+    60% { transform: translateX(20px) rotate(4deg); }
+    70% { transform: translateX(-10px) rotate(-3deg); }
+    80% { transform: translateX(10px) rotate(3deg); }
+    90% { transform: translateX(-4px) rotate(-1deg); }
+  }
+  @keyframes shake-final {
+    0% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-40px) rotate(-10deg); }
+    20% { transform: translateX(40px) rotate(10deg); }
+    30% { transform: translateX(-35px) rotate(-8deg); }
+    40% { transform: translateX(35px) rotate(8deg); }
+    50% { transform: translateX(-25px) rotate(-6deg); }
+    60% { transform: translateX(25px) rotate(6deg); }
+    70% { transform: translateX(-15px) rotate(-3deg); }
+    80% { transform: translateX(10px) rotate(2deg); }
+    90% { transform: translateX(-5px) rotate(-1deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+  @keyframes tube-recoil {
+    0% { transform: translateY(0); }
+    30% { transform: translateY(-30px); }
+    50% { transform: translateY(15px); }
+    70% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Tube body styling */
+  .tube-body {
+    position: relative;
+    width: 140px;
+    height: 280px;
+    background: linear-gradient(
+      90deg,
+      var(--tube-dark) 0%,
+      var(--tube-color) 8%,
+      var(--tube-light) 20%,
+      var(--tube-color) 35%,
+      var(--tube-dark) 50%,
+      var(--tube-color) 65%,
+      var(--tube-light) 80%,
+      var(--tube-color) 92%,
+      var(--tube-dark) 100%
+    );
+    border-radius: 18px 18px 50% 50% / 18px 18px 30px 30px;
+    box-shadow:
+      inset 0 2px 4px rgba(255,255,255,0.08),
+      inset 0 -2px 6px rgba(0,0,0,0.4),
+      0 8px 30px rgba(0,0,0,0.6),
+      0 2px 8px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+
+  /* Wood grain */
+  .tube-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.06) 3px,
+      rgba(0,0,0,0.06) 4px,
+      transparent 4px,
+      transparent 7px
+    );
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* Metal bands */
+  .tube-band {
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    height: 18px;
+    background: linear-gradient(
+      180deg,
+      #8a7a5a 0%,
+      #c4b896 25%,
+      #e8dcc0 40%,
+      #a89870 50%,
+      #e8dcc0 60%,
+      #c4b896 75%,
+      #8a7a5a 100%
+    );
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+  .tube-band.top { top: 70px; }
+  .tube-band.bottom { bottom: 50px; }
+
+  /* Tube opening */
+  .tube-opening {
+    position: absolute;
+    top: -8px;
+    left: 5px;
+    right: 5px;
+    height: 30px;
+    background: linear-gradient(
+      180deg,
+      rgba(255,255,255,0.05) 0%,
+      var(--tube-dark) 100%
+    );
+    border-radius: 12px 12px 0 0;
+    z-index: 3;
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.5);
+  }
+
+  /* Tube base */
+  .tube-base {
+    position: absolute;
+    bottom: -15px;
+    left: -12px;
+    right: -12px;
+    height: 35px;
+    background: linear-gradient(
+      180deg,
+      var(--tube-dark) 0%,
+      var(--tube-color) 20%,
+      var(--tube-dark) 100%
+    );
+    border-radius: 40% 40% 25% 25% / 15px 15px 8px 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    z-index: 1;
+  }
+
+  /* Sticks visible above tube */
+  .sticks-visible {
+    position: absolute;
+    bottom: 265px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 4;
+    transition: transform 0.3s ease;
+  }
+  .sticks-visible.rising {
+    transform: translateX(-50%) translateY(-20px);
+  }
+  .sticks-visible.rising-more {
+    transform: translateX(-50%) translateY(-40px);
+  }
+  .sticks-visible.popping {
+    transform: translateX(-50%) translateY(-60px);
+  }
+
+  .stick-top {
+    width: 8px;
+    height: 55px;
+    background: linear-gradient(
+      180deg,
+      #d4b87a 0%,
+      #c49a3c 30%,
+      #b8860b 60%,
+      #8B6914 100%
+    );
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 -1px 2px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .stick-top::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 12px;
+    background: var(--red);
+    border-radius: 1px;
+    opacity: 0.7;
+  }
+
+  /* Shake counter hint */
+  .shake-hint {
+    font-size: 16px;
+    color: rgba(212, 168, 67, 0.7);
+    text-align: center;
+    letter-spacing: 2px;
+    min-height: 24px;
+    transition: all 0.3s ease;
+  }
+  .shake-hint.urgent {
+    color: var(--red);
+    animation: pulse-text 0.5s ease-in-out infinite;
+  }
+  @keyframes pulse-text {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(212, 168, 67, 0.2);
+    transition: all 0.3s ease;
+  }
+  .progress-dot.filled {
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(212, 168, 67, 0.5);
+  }
+  .progress-dot.peak {
+    background: var(--red);
+    box-shadow: 0 0 12px rgba(196, 30, 58, 0.6);
+    animation: pulse-dot 0.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.6); }
+  }
+
+  /* Result display */
+  .result-area {
+    display: none;
+    width: 100%;
+    max-width: 380px;
+    animation: resultReveal 0.8s ease-out;
+  }
+  .result-area.visible {
+    display: block;
+  }
+  @keyframes resultReveal {
+    0% { opacity: 0; transform: translateY(30px) scale(0.9); }
+    50% { opacity: 1; transform: translateY(-5px) scale(1.02); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .result-card {
+    background: linear-gradient(180deg, #2a1f14 0%, #1f1610 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 28px 24px;
+    position: relative;
+    box-shadow:
+      0 0 30px rgba(212, 168, 67, 0.15),
+      0 8px 30px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(212, 168, 67, 0.1);
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(212, 168, 67, 0.25);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+  /* Corner ornaments */
+  .result-card::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    border-radius: 12px;
+    pointer-events: none;
+    background:
+      linear-gradient(135deg, var(--gold) 0%, transparent 15%, transparent 85%, var(--gold) 100%),
+      linear-gradient(225deg, var(--gold) 0%, transparent 15%, transparent 85%, var(--gold) 100%),
+      linear-gradient(315deg, var(--gold) 0%, transparent 15%, transparent 85%, var(--gold) 100%),
+      linear-gradient(45deg, var(--gold) 0%, transparent 15%, transparent 85%, var(--gold) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 2px;
+  }
+
+  .result-level {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: 4px;
+  }
+  .result-level.great { color: var(--red); text-shadow: 0 0 10px rgba(196, 30, 58, 0.4); }
+  .result-level.good { color: var(--gold); text-shadow: 0 0 10px rgba(212, 168, 67, 0.3); }
+  .result-level.neutral { color: #b8a080; }
+  .result-level.caution { color: #8a7060; }
+
+  .result-name {
+    font-size: 18px;
+    color: var(--gold-light);
+    text-align: center;
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+  }
+  .result-number {
+    font-size: 13px;
+    color: rgba(212, 168, 67, 0.5);
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .result-divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 16px;
+  }
+  .result-verse {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 22px;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.8;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .result-interpretation {
+    font-size: 15px;
+    color: rgba(245, 230, 200, 0.7);
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 1px;
+    padding: 0 12px;
+  }
+  .result-reward {
+    font-size: 13px;
+    color: rgba(212, 168, 67, 0.55);
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 1px;
+    padding: 0 8px;
+    font-style: italic;
+  }
+
+  /* Fly-out stick */
+  .fly-stick {
+    position: fixed;
+    z-index: 100;
+    width: 16px;
+    height: 180px;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      #d4b87a 0%,
+      #c49a3c 15%,
+      #b8860b 40%,
+      #8B6914 70%,
+      #6B3A2A 100%
+    );
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    opacity: 0;
+  }
+  .fly-stick.animating {
+    animation: stickFly 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  @keyframes stickFly {
+    0% {
+      opacity: 1;
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    15% {
+      opacity: 1;
+      transform: translateY(-280px) translateX(-30px) rotate(180deg);
+    }
+    35% {
+      opacity: 1;
+      transform: translateY(-320px) translateX(20px) rotate(360deg);
+    }
+    55% {
+      opacity: 1;
+      transform: translateY(-200px) translateX(-10px) rotate(540deg);
+    }
+    75% {
+      opacity: 0.9;
+      transform: translateY(-80px) translateX(40px) rotate(720deg);
+    }
+    90% {
+      opacity: 0.5;
+      transform: translateY(20px) translateX(15px) rotate(800deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100px) translateX(50px) rotate(900deg);
+    }
+  }
+
+  /* Particles */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99;
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0;
+  }
+  .particle.animating {
+    animation: particleDrift 1s ease-out forwards;
+  }
+  @keyframes particleDrift {
+    0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+  }
+
+  /* Button */
+  .btn-area {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 18px;
+    letter-spacing: 6px;
+    padding: 12px 32px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn:hover {
+    background: rgba(212, 168, 67, 0.1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.2);
+  }
+  .btn:active {
+    background: rgba(212, 168, 67, 0.2);
+    transform: scale(0.96);
+  }
+  .btn.primary {
+    background: var(--red-dark);
+    border-color: var(--red);
+    color: var(--text-light);
+  }
+  .btn.primary:hover {
+    background: var(--red);
+    box-shadow: 0 0 24px rgba(196, 30, 58, 0.3);
+  }
+
+  /* Tube tap indicator */
+  .tap-indicator {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 0;
+  }
+  .tap-indicator.show {
+    animation: tapRipple 0.7s ease-out forwards;
+  }
+  @keyframes tapRipple {
+    0% { transform: scale(0); opacity: 0.6; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  /* Like button */
+  .like-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 50;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    border: 2px solid rgba(255,255,255,0.25);
+    box-shadow: 0 4px 16px rgba(196, 30, 58, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .like-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(196, 30, 58, 0.6); }
+  .like-btn:active { transform: scale(0.92); }
+  .like-btn svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .like-btn.liked svg { fill: #fff; }
+
+  /* QR overlay */
+  .qr-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .qr-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .qr-overlay .qr-popup {
+    background: linear-gradient(180deg, #2a1f14 0%, #1f1610 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(212, 168, 67, 0.2), 0 12px 40px rgba(0,0,0,0.6);
+    transform: scale(0.9);
+    transition: transform 0.35s ease;
+    cursor: pointer;
+  }
+  .qr-overlay.show .qr-popup { transform: scale(1); }
+  .qr-overlay .qr-popup img {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    display: block;
+  }
+  .qr-overlay .qr-popup .qr-title {
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .qr-overlay .qr-popup .qr-tip {
+    color: rgba(212, 168, 67, 0.55);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-top: 14px;
+  }
+
+  /* Daily limit overlay */
+  .daily-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    padding: 24px;
+  }
+  .daily-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .daily-overlay .daily-card {
+    background: linear-gradient(180deg, #2a1f14 0%, #1a1410 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 32px 24px 24px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(212, 168, 67, 0.15), 0 12px 40px rgba(0,0,0,0.6);
+    transform: scale(0.9);
+    transition: transform 0.4s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .daily-overlay.show .daily-card { transform: scale(1); }
+  .daily-overlay .daily-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+  .daily-card .daily-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .daily-card .daily-quote {
+    font-size: 14px;
+    color: rgba(212, 168, 67, 0.55);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  .daily-card .daily-body {
+    font-size: 15px;
+    color: rgba(245, 230, 200, 0.75);
+    line-height: 2;
+    letter-spacing: 1.5px;
+  }
+  .daily-card .daily-body p { margin-bottom: 12px; }
+  .daily-card .daily-footer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: rgba(212, 168, 67, 0.6);
+    letter-spacing: 2px;
+  }
+  .daily-card .daily-tip {
+    margin-top: 18px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+
+  /* Birth input screen */
+  .birth-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(139, 105, 20, 0.12) 0%, transparent 70%),
+      var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  .birth-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .birth-card {
+    background: linear-gradient(180deg, #2a1f14 0%, #1a1410 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 36px 28px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(212, 168, 67, 0.12), 0 12px 40px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .birth-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(212, 168, 67, 0.18);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+  .birth-card .birth-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 30px;
+    color: var(--gold);
+    letter-spacing: 6px;
+    margin-bottom: 6px;
+  }
+  .birth-card .birth-sub {
+    font-size: 13px;
+    color: rgba(212, 168, 67, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  .birth-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .birth-row label {
+    width: 56px;
+    text-align: right;
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+  .birth-row input,
+  .birth-row select {
+    flex: 1;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(212, 168, 67, 0.35);
+    border-radius: 6px;
+    color: var(--text-light);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 12px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .birth-row input:focus,
+  .birth-row select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(212, 168, 67, 0.15);
+  }
+  .birth-row select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4a843' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .birth-row select option {
+    background: #2a1f14;
+    color: var(--text-light);
+  }
+  .birth-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .birth-actions button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: 4px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .birth-submit {
+    background: var(--red-dark);
+    border: 1px solid var(--red);
+    color: var(--text-light);
+  }
+  .birth-submit:hover {
+    background: var(--red);
+    box-shadow: 0 0 24px rgba(196, 30, 58, 0.3);
+  }
+  .birth-submit:active { transform: scale(0.96); }
+
+  .birth-notice {
+    margin-top: 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1px;
+  }
+
+  /* Yearly fortune analysis */
+  .yearly-fortune {
+    margin-top: 24px;
+  }
+  .yf-card {
+    background: linear-gradient(180deg, #2a1f14 0%, #1a1410 100%);
+    border: 1px solid rgba(212, 168, 67, 0.3);
+    border-radius: 10px;
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+  }
+  .yf-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(212, 168, 67, 0.12);
+    border-radius: 7px;
+    pointer-events: none;
+  }
+  .yf-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', cursive;
+    font-size: 28px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    margin-bottom: 2px;
+  }
+  .yf-sub {
+    font-size: 15px;
+    color: rgba(212, 168, 67, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .yf-section {
+    margin-bottom: 16px;
+  }
+  .yf-label {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--red);
+    border: 1px solid var(--red);
+    border-radius: 3px;
+    padding: 2px 10px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .yf-divider {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 12px;
+  }
+  .yf-label.gold { color: var(--gold); border-color: var(--gold); }
+  .yf-label.cyan { color: #5cb8b2; border-color: #5cb8b2; }
+  .yf-label.purple { color: #b08cd4; border-color: #b08cd4; }
+  .yf-label.green { color: #7eb87e; border-color: #7eb87e; }
+  .yf-text {
+    font-size: 16px;
+    color: rgba(245, 230, 200, 0.75);
+    line-height: 1.9;
+    letter-spacing: 1.5px;
+    text-align: left;
+    padding: 0 4px;
+  }
+  .yf-stars {
+    font-size: 18px;
+    letter-spacing: 3px;
+    margin-top: 1px;
+    color: #f0d68a;
+  }
+  .yf-meta {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: rgba(245, 230, 200, 0.55);
+    letter-spacing: 1px;
+  }
+  .yf-meta span { white-space: nowrap; }
+
+  .calendar-toggle {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+  .cal-option {
+    flex: 1;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 10px 6px;
+    border: 1px solid rgba(212, 168, 67, 0.35);
+    background: rgba(0,0,0,0.35);
+    color: rgba(245, 230, 200, 0.5);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cal-option.active {
+    background: rgba(212, 168, 67, 0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+    font-weight: bold;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 480px) {
+    .like-btn { bottom: 16px; right: 16px; width: 46px; height: 46px; }
+    .like-btn svg { width: 24px; height: 24px; }
+    .qr-overlay .qr-popup img { width: 160px; height: 160px; }
+    .title { font-size: 36px; letter-spacing: 8px; }
+    .tube-area { width: 220px; height: 380px; }
+    .tube-body { width: 120px; height: 250px; }
+    .sticks-visible { bottom: 238px; gap: 5px; }
+    .stick-top { width: 7px; height: 48px; }
+    .tube-band { height: 14px; }
+    .tube-band.top { top: 60px; }
+    .tube-band.bottom { bottom: 42px; }
+    .result-card { padding: 20px 16px; }
+    .result-verse { font-size: 19px; }
+  }
+
+  @media (max-width: 360px) {
+    .title { font-size: 28px; letter-spacing: 6px; }
+    .tube-area { width: 190px; height: 340px; }
+    .tube-body { width: 100px; height: 220px; }
+    .sticks-visible { bottom: 210px; gap: 4px; }
+    .stick-top { width: 6px; height: 42px; }
+    .tube-band { height: 12px; }
+    .tube-band.top { top: 50px; }
+    .tube-band.bottom { bottom: 36px; }
+    .result-verse { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background decorations -->
+<div class="bg-decoration cloud-left"></div>
+<div class="bg-decoration cloud-right"></div>
+<div class="bg-decoration cloud-top"></div>
+
+<!-- Birth input screen -->
+<div class="birth-screen" id="birthScreen">
+  <div class="birth-card">
+    <div class="birth-title">生辰八字</div>
+    <div class="birth-sub">— 请输入您的出生日期 —</div>
+    <div class="birth-row">
+      <label>历法</label>
+      <div class="calendar-toggle">
+        <button class="cal-option active" data-cal="lunar">阴历（农历）</button>
+        <button class="cal-option" data-cal="solar">阳历（公历）</button>
+      </div>
+    </div>
+    <div class="birth-row">
+      <label>年</label>
+      <input type="text" id="birthYear" placeholder="如 1990" maxlength="4" inputmode="numeric">
+    </div>
+    <div class="birth-row">
+      <label>月</label>
+      <select id="birthMonth">
+        <option value="">请选择</option>
+        <option value="1">正月</option><option value="2">二月</option><option value="3">三月</option>
+        <option value="4">四月</option><option value="5">五月</option><option value="6">六月</option>
+        <option value="7">七月</option><option value="8">八月</option><option value="9">九月</option>
+        <option value="10">十月</option><option value="11">冬月</option><option value="12">腊月</option>
+      </select>
+    </div>
+    <div class="birth-row">
+      <label>日</label>
+      <select id="birthDay"></select>
+    </div>
+    <div class="birth-row">
+      <label>时辰</label>
+      <select id="birthShi">
+        <option value="">未知</option>
+        <option value="子时">子时 (23-1点)</option><option value="丑时">丑时 (1-3点)</option>
+        <option value="寅时">寅时 (3-5点)</option><option value="卯时">卯时 (5-7点)</option>
+        <option value="辰时">辰时 (7-9点)</option><option value="巳时">巳时 (9-11点)</option>
+        <option value="午时">午时 (11-13点)</option><option value="未时">未时 (13-15点)</option>
+        <option value="申时">申时 (15-17点)</option><option value="酉时">酉时 (17-19点)</option>
+        <option value="戌时">戌时 (19-21点)</option><option value="亥时">亥时 (21-23点)</option>
+      </select>
+    </div>
+    <div class="birth-actions">
+      <button class="birth-submit" id="birthSubmit">开始求签</button>
+    </div>
+    <div class="birth-notice">生辰信息仅用于卜卦参考，不作留存</div>
+  </div>
+</div>
+
+<!-- Main container -->
+<div class="main-container" id="mainContainer" style="display:none;">
+  <!-- Title -->
+  <div class="title-area">
+    <div class="title">灵签问卦</div>
+    <div class="subtitle">— 周易 · 六十四卦 —</div>
+  </div>
+
+  <!-- Tube area -->
+  <div class="tube-area" id="tubeArea">
+    <div class="tube-wrapper" id="tubeWrapper">
+      <!-- Sticks visible above tube -->
+      <div class="sticks-visible" id="sticksVisible">
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+        <div class="stick-top"></div>
+      </div>
+      <!-- Tube body -->
+      <div class="tube-body">
+        <div class="tube-band top"></div>
+        <div class="tube-band bottom"></div>
+        <div class="tube-opening"></div>
+        <div class="tube-base"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shake hint -->
+  <div class="shake-hint" id="shakeHint">轻点签筒，摇动求签</div>
+  <div class="progress-dots" id="progressDots">
+    <div class="progress-dot"></div>
+    <div class="progress-dot"></div>
+    <div class="progress-dot"></div>
+    <div class="progress-dot"></div>
+    <div class="progress-dot"></div>
+    <div class="progress-dot"></div>
+  </div>
+
+  <!-- Result area -->
+  <div class="result-area" id="resultArea">
+    <div class="result-card">
+      <div class="result-level" id="resultLevel"></div>
+      <div class="result-name" id="resultName"></div>
+      <div class="result-number" id="resultNumber"></div>
+      <div class="result-divider"></div>
+      <div class="result-verse" id="resultVerse"></div>
+      <div class="result-divider"></div>
+      <div class="result-interpretation" id="resultInterpretation"></div>
+      <div class="result-divider"></div>
+      <div class="result-reward" id="resultReward"></div>
+    </div>
+  </div>
+
+  <!-- Like button -->
+  <div class="like-btn" id="likeBtn" title="赞赏">
+    <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+  </div>
+
+  <!-- QR overlay -->
+  <div class="qr-overlay" id="qrOverlay">
+    <div class="qr-popup">
+      <div class="qr-title">随喜赞赏</div>
+      <img src="ma.jpg" alt="赞赏码">
+      <div class="qr-tip">点击此处关闭</div>
+    </div>
+  </div>
+
+  <!-- Daily limit overlay -->
+  <div class="daily-overlay" id="dailyOverlay">
+    <div class="daily-card">
+      <div class="daily-title">📜 周易古训 · 初筮告，再三渎，渎则不告</div>
+      <div class="daily-quote">一日一签 · 诚心为本</div>
+      <div class="daily-body">
+        <p>古法求签，贵在诚心<br>同一件事，一日只可一问<br>反复求问便是亵渎神明，再抽亦不灵验</p>
+        <p>若签文不尽人意，也不必忧心<br>命由天定，运由己造<br>多行善事，广积阴德，自可逢凶化吉</p>
+        <p>若有其他事相求<br>请明日心净之时再来</p>
+      </div>
+      <div class="daily-footer">💮 若此签对您有所指引，欢迎随缘随喜添一份灯油钱<br>一分也是善缘，福报自至</div>
+      <div class="daily-tip">点击任意处关闭</div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-area">
+    <button class="btn primary" id="btnRetry" style="display:none;">再求一签</button>
+  </div>
+
+  <!-- Yearly fortune analysis -->
+  <div class="yearly-fortune" id="yearlyFortune" style="display:none;">
+    <div class="yf-card">
+      <div class="yf-title">流年运势</div>
+      <div class="yf-sub" id="yfSub"></div>
+      <div class="yf-divider"></div>
+      <div class="yf-section">
+        <div class="yf-label">总体</div>
+        <div class="yf-stars" id="yfOverall"></div>
+        <div class="yf-text" id="yfOverallText"></div>
+      </div>
+      <div class="yf-section">
+        <div class="yf-label gold">事业</div>
+        <div class="yf-stars" id="yfCareer"></div>
+        <div class="yf-text" id="yfCareerText"></div>
+      </div>
+      <div class="yf-section">
+        <div class="yf-label cyan">财运</div>
+        <div class="yf-stars" id="yfWealth"></div>
+        <div class="yf-text" id="yfWealthText"></div>
+      </div>
+      <div class="yf-section">
+        <div class="yf-label green">健康</div>
+        <div class="yf-stars" id="yfHealth"></div>
+        <div class="yf-text" id="yfHealthText"></div>
+      </div>
+      <div class="yf-section">
+        <div class="yf-label purple">感情</div>
+        <div class="yf-stars" id="yfLove"></div>
+        <div class="yf-text" id="yfLoveText"></div>
+      </div>
+      <div class="yf-divider"></div>
+      <div class="yf-section">
+        <div class="yf-label">本命卦象</div>
+        <div class="yf-text" id="yfHexagram" style="text-align:center;"></div>
+      </div>
+      <div class="yf-meta" id="yfMeta"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── Fortune database (based on I Ching 64 hexagrams) ──
+  const fortunes = [
+    { id: 1,  name: '乾为天', level: 'great', levelName: '大吉 · 上上签', verse: '天行健，君子以自强不息。\n飞龙在天，利见大人。', interpret: '龙腾九天之象，万事亨通。事业有成，贵人相助，宜积极进取，大有作为。' },
+    { id: 2,  name: '坤为地', level: 'great', levelName: '大吉 · 上上签', verse: '地势坤，君子以厚德载物。\n牝马之贞，安贞吉。', interpret: '大地承载万物之象。以柔克刚，以德服人。守正不阿，终得福报。' },
+    { id: 3,  name: '水雷屯', level: 'neutral', levelName: '中平 · 中签', verse: '刚柔始交而难生，\n动乎险中，大亨贞。', interpret: '万物初生，困难重重。万事开头难，宜坚定信心，稳健前行，不可冒进。' },
+    { id: 4,  name: '山水蒙', level: 'neutral', levelName: '中平 · 中签', verse: '匪我求童蒙，童蒙求我。\n初筮告，再三渎，渎则不告。', interpret: '启蒙开智之象。虚心求教则有所得，但不可再三反复、犹豫不决。' },
+    { id: 5,  name: '水天需', level: 'good', levelName: '上吉 · 上签', verse: '云上于天，需。\n君子以饮食宴乐。', interpret: '云聚天上，待时而雨。耐心等待，时机将至。宜养精蓄锐，静待佳音。' },
+    { id: 6,  name: '天水讼', level: 'neutral', levelName: '中平 · 中签', verse: '天与水违行，讼。\n君子以作事谋始。', interpret: '天水相违，争端之象。凡事慎始慎终，避免口舌纷争。退一步海阔天空。' },
+    { id: 7,  name: '地水师', level: 'neutral', levelName: '中平 · 中签', verse: '地中有水，师。\n君子以容民畜众。', interpret: '地藏水源，聚众之象。统率之道，以德服人。众人同心，其利断金。' },
+    { id: 8,  name: '水地比', level: 'good', levelName: '上吉 · 上签', verse: '地上有水，比。\n先王以建万国，亲诸侯。', interpret: '水附大地，亲和之象。团结和睦，得道多助。宜广结善缘，合作共赢。' },
+    { id: 9,  name: '风天小畜', level: 'good', levelName: '上吉 · 上签', verse: '风行天上，小畜。\n君子以懿文德。', interpret: '风行天上，小有积蓄。厚积薄发，润物无声。宜修养品德，积蓄力量。' },
+    { id: 10, name: '天泽履', level: 'neutral', levelName: '中平 · 中签', verse: '上天下泽，履。\n君子以辩上下，定民志。', interpret: '天在上泽在下，各安其位。循礼而动，谨言慎行。脚踏实地，步步为营。' },
+    { id: 11, name: '地天泰', level: 'great', levelName: '大吉 · 上上签', verse: '天地交而万物通，\n上下交而其志同。', interpret: '天地交融，万物亨通。否极泰来，万事顺遂。事业、财运、感情皆宜。' },
+    { id: 12, name: '天地否', level: 'caution', levelName: '中下 · 下签', verse: '天地不交而万物不通。\n君子以俭德辟难。', interpret: '天地闭塞，时运不济。宜隐忍待时，节俭度日。不可荣以禄，静待转机。' },
+    { id: 13, name: '天火同人', level: 'great', levelName: '大吉 · 上上签', verse: '天与火，同人。\n君子以类族辨物。', interpret: '天火相映，志同道合。同心协力，大事可成。宜结交益友，共同奋进。' },
+    { id: 14, name: '火天大有', level: 'great', levelName: '大吉 · 上上签', verse: '火在天上，大有。\n君子以遏恶扬善。', interpret: '日正当中，丰收之象。大有所获，五谷丰登。事业财运俱佳，顺天休命。' },
+    { id: 15, name: '地山谦', level: 'great', levelName: '大吉 · 上上签', verse: '地中有山，谦。\n君子以裒多益寡，称物平施。', interpret: '高山隐于地中，谦逊之德。满招损，谦受益。谦虚待人，万事可成。' },
+    { id: 16, name: '雷地豫', level: 'good', levelName: '上吉 · 上签', verse: '雷出地奋，豫。\n先王以作乐崇德。', interpret: '春雷震地，万物欢欣。顺势而为，喜乐安康。宜庆祝成就，分享喜悦。' },
+    { id: 17, name: '泽雷随', level: 'good', levelName: '上吉 · 上签', verse: '泽中有雷，随。\n君子以向晦入宴息。', interpret: '雷入泽中，相随而动。随机应变，顺势而行。宜灵活变通，不可固执。' },
+    { id: 18, name: '山风蛊', level: 'caution', levelName: '中下 · 下签', verse: '山下有风，蛊。\n君子以振民育德。', interpret: '风入山下，积弊之象。革除旧弊，拨乱反正。宜整顿内务，除旧布新。' },
+    { id: 19, name: '地泽临', level: 'great', levelName: '大吉 · 上上签', verse: '泽上有地，临。\n君子以教思无穷，容保民无疆。', interpret: '泽水近地，恩泽降临。居高临下，恩威并施。宜亲近民众，广施恩德。' },
+    { id: 20, name: '风地观', level: 'neutral', levelName: '中平 · 中签', verse: '风行地上，观。\n先王以省方观民设教。', interpret: '风行大地，观察之象。审时度势，见微知著。宜冷静观察，三思后行。' },
+    { id: 21, name: '火雷噬嗑', level: 'neutral', levelName: '中平 · 中签', verse: '雷电交加，噬嗑。\n先王以明罚敕法。', interpret: '雷电交击，破除阻碍。果断决策，快刀斩乱麻。宜明辨是非，当断则断。' },
+    { id: 22, name: '山火贲', level: 'good', levelName: '上吉 · 上签', verse: '山下有火，贲。\n君子以明庶政，无敢折狱。', interpret: '火照山下，文饰之象。外在修饰，内在充实。宜注重形象，内外兼修。' },
+    { id: 23, name: '山地剥', level: 'caution', levelName: '下下 · 下下签', verse: '山附于地，剥。\n上以厚下安宅。', interpret: '山崩于地，剥落之象。小人道长，君子道消。宜顺应时势，厚待下属，稳固根基。' },
+    { id: 24, name: '地雷复', level: 'good', levelName: '上吉 · 上签', verse: '雷在地中，复。\n先王以至日闭关。', interpret: '一阳来复，万象更新。冬至阳生，希望重生。宜休养生息，积蓄力量，静待春来。' },
+    { id: 25, name: '天雷无妄', level: 'good', levelName: '上吉 · 上签', verse: '天下雷行，物与无妄。\n先王以茂对时育万物。', interpret: '雷行天下，真实无妄。诚心正意，不可有私。宜真诚待人，脚踏实地。' },
+    { id: 26, name: '山天大畜', level: 'great', levelName: '大吉 · 上上签', verse: '天在山中，大畜。\n君子以多识前言往行。', interpret: '天藏山中，大有积蓄。厚积薄发，蓄势待时。宜博学多闻，充实自我。' },
+    { id: 27, name: '山雷颐', level: 'neutral', levelName: '中平 · 中签', verse: '山下有雷，颐。\n君子以慎言语，节饮食。', interpret: '雷在山下，颐养之象。养生之道，谨言慎食。宜修身养性，节制有度。' },
+    { id: 28, name: '泽风大过', level: 'caution', levelName: '中下 · 下签', verse: '泽灭木，大过。\n君子以独立不惧，遁世无闷。', interpret: '泽水淹木，过甚之象。物极必反，过犹不及。宜独立自主，不畏艰难。' },
+    { id: 29, name: '坎为水', level: 'caution', levelName: '中下 · 下签', verse: '水洊至，习坎。\n君子以常德行，习教事。', interpret: '水流重叠，险难重重。身处困境，宜坚守正道。以诚待险，终能化险为夷。' },
+    { id: 30, name: '离为火', level: 'good', levelName: '上吉 · 上签', verse: '明两作，离。\n大人以继明照于四方。', interpret: '光明相续，照耀四方。依附正道，光明磊落。宜借势而行，柔顺中正。' },
+    { id: 31, name: '泽山咸', level: 'great', levelName: '大吉 · 上上签', verse: '山上有泽，咸。\n君子以虚受人。', interpret: '泽在山巅，感应之象。心有灵犀，两情相悦。宜虚怀若谷，以诚感人。' },
+    { id: 32, name: '雷风恒', level: 'good', levelName: '上吉 · 上签', verse: '雷风相与，恒。\n君子以立不易方。', interpret: '雷风相随，永恒之道。持之以恒，方得始终。宜坚守正道，不可半途而废。' },
+    { id: 33, name: '天山遁', level: 'neutral', levelName: '中平 · 中签', verse: '天下有山，遁。\n君子以远小人，不恶而严。', interpret: '山高于天，退避之象。适时而退，明哲保身。宜远离小人，不与为恶。' },
+    { id: 34, name: '雷天大壮', level: 'great', levelName: '大吉 · 上上签', verse: '雷在天上，大壮。\n君子以非礼弗履。', interpret: '雷震于天，强盛之象。力量强大，宜行正道。不可恃强凌弱，非礼勿动。' },
+    { id: 35, name: '火地晋', level: 'great', levelName: '大吉 · 上上签', verse: '明出地上，晋。\n君子以自昭明德。', interpret: '日出地上，晋升之象。前程似锦，步步高升。宜自我彰显，发光发热。' },
+    { id: 36, name: '地火明夷', level: 'caution', levelName: '中下 · 下签', verse: '明入地中，明夷。\n君子以莅众，用晦而明。', interpret: '光明入地，晦暗之象。时运不济，韬光养晦。宜隐忍守拙，静待光明。' },
+    { id: 37, name: '风火家人', level: 'good', levelName: '上吉 · 上签', verse: '风自火出，家人。\n君子以言有物而行有恒。', interpret: '风火相生，家和之象。家庭和睦，万事兴隆。宜言必有据，行必有恒。' },
+    { id: 38, name: '火泽睽', level: 'neutral', levelName: '中平 · 中签', verse: '上火下泽，睽。\n君子以同而异。', interpret: '火泽相背，乖离之象。求同存异，小事可成。宜包容差异，和而不同。' },
+    { id: 39, name: '水山蹇', level: 'caution', levelName: '中下 · 下签', verse: '山上有水，蹇。\n君子以反身修德。', interpret: '山高水险，艰难之象。前路多艰，宜反躬自省。修德以渡难关，不可强求。' },
+    { id: 40, name: '雷水解', level: 'good', levelName: '上吉 · 上签', verse: '雷雨作，解。\n君子以赦过宥罪。', interpret: '雷雨交加，困难消解。否极泰来，危机解除。宜宽恕待人，化解矛盾。' },
+    { id: 41, name: '山泽损', level: 'neutral', levelName: '中平 · 中签', verse: '山下有泽，损。\n君子以惩忿窒欲。', interpret: '山压泽上，减损之象。有失有得，损下益上。宜克制欲望，减少忿怒。' },
+    { id: 42, name: '风雷益', level: 'great', levelName: '大吉 · 上上签', verse: '风雷相与，益。\n君子以见善则迁，有过则改。', interpret: '风雷相益，增益之象。见善思齐，有过则改。宜学习进取，日新其德。' },
+    { id: 43, name: '泽天夬', level: 'neutral', levelName: '中平 · 中签', verse: '泽上于天，夬。\n君子以施禄及下，居德则忌。', interpret: '泽水上于天，决断之象。当断不断，反受其乱。宜果断决策，施恩于下。' },
+    { id: 44, name: '天风姤', level: 'neutral', levelName: '中平 · 中签', verse: '天下有风，姤。\n后以施命诰四方。', interpret: '风行天下，遇合之象。不期而遇，缘分天定。宜顺应机缘，不可强求。' },
+    { id: 45, name: '泽地萃', level: 'good', levelName: '上吉 · 上签', verse: '泽上于地，萃。\n君子以除戎器，戒不虞。', interpret: '泽水聚地，荟萃之象。精英汇聚，共谋大业。宜聚集人才，防备意外。' },
+    { id: 46, name: '地风升', level: 'great', levelName: '大吉 · 上上签', verse: '地中生木，升。\n君子以顺德，积小以高大。', interpret: '木生于地，上升之象。步步高升，积小成大。宜顺势而为，厚积薄发。' },
+    { id: 47, name: '泽水困', level: 'caution', levelName: '中下 · 下签', verse: '泽无水，困。\n君子以致命遂志。', interpret: '泽中无水，困顿之象。身处逆境，宜坚守志向。困而不失其所，终能脱困。' },
+    { id: 48, name: '水风井', level: 'neutral', levelName: '中平 · 中签', verse: '木上有水，井。\n君子以劳民劝相。', interpret: '水在木上，井养之象。取之不竭，养而不穷。宜修整基础，惠及他人。' },
+    { id: 49, name: '泽火革', level: 'good', levelName: '上吉 · 上签', verse: '泽中有火，革。\n君子以治历明时。', interpret: '水火相息，变革之象。革故鼎新，顺应天时。宜除旧布新，把握时机。' },
+    { id: 50, name: '火风鼎', level: 'great', levelName: '大吉 · 上上签', verse: '木上有火，鼎。\n君子以正位凝命。', interpret: '木火相烹，鼎新之象。革故鼎新，气象万千。宜端正位置，凝聚使命。' },
+    { id: 51, name: '震为雷', level: 'neutral', levelName: '中平 · 中签', verse: '洊雷，震。\n君子以恐惧修省。', interpret: '雷声重叠，震动之象。临危不乱，恐惧修省。宜戒惧谨慎，反躬自省。' },
+    { id: 52, name: '艮为山', level: 'neutral', levelName: '中平 · 中签', verse: '兼山，艮。\n君子以思不出其位。', interpret: '两山并立，静止之象。当止则止，思不出位。宜安守本分，适可而止。' },
+    { id: 53, name: '风山渐', level: 'good', levelName: '上吉 · 上签', verse: '山上有木，渐。\n君子以居贤德善俗。', interpret: '木生山上，渐进之象。循序渐进，不可急躁。宜积德累善，水到渠成。' },
+    { id: 54, name: '雷泽归妹', level: 'neutral', levelName: '中平 · 中签', verse: '泽上有雷，归妹。\n君子以永终知敝。', interpret: '雷震泽上，婚嫁之象。婚姻大事，宜慎始终。知敝则能永终，不可草率。' },
+    { id: 55, name: '雷火丰', level: 'great', levelName: '大吉 · 上上签', verse: '雷电皆至，丰。\n君子以折狱致刑。', interpret: '雷电交至，丰盛之象。盛大之时，宜明断是非。日中则昃，宜居安思危。' },
+    { id: 56, name: '火山旅', level: 'neutral', levelName: '中平 · 中签', verse: '山上有火，旅。\n君子以明慎用刑而不留狱。', interpret: '火在山上，旅行之象。客居在外，宜谨慎行事。匆匆过客，得失随缘。' },
+    { id: 57, name: '巽为风', level: 'good', levelName: '上吉 · 上签', verse: '随风，巽。\n君子以申命行事。', interpret: '风行草偃，柔顺之象。顺势而为，柔能克刚。宜谦逊待人，申命行事。' },
+    { id: 58, name: '兑为泽', level: 'great', levelName: '大吉 · 上上签', verse: '丽泽，兑。\n君子以朋友讲习。', interpret: '两泽相连，喜悦之象。朋友讲习，互相切磋。宜广交益友，共享欢乐。' },
+    { id: 59, name: '风水涣', level: 'neutral', levelName: '中平 · 中签', verse: '风行水上，涣。\n先王以享于帝，立庙。', interpret: '风行水上，涣散之象。分离之后，重新凝聚。宜团结人心，聚合力量。' },
+    { id: 60, name: '水泽节', level: 'neutral', levelName: '中平 · 中签', verse: '泽上有水，节。\n君子以制数度，议德行。', interpret: '泽上有水，节制之象。凡事有度，过犹不及。宜节制欲望，遵守规矩。' },
+    { id: 61, name: '风泽中孚', level: 'good', levelName: '上吉 · 上签', verse: '泽上有风，中孚。\n君子以议狱缓死。', interpret: '风行泽上，诚信之象。内心诚信，感化他人。宜以诚待人，信及豚鱼。' },
+    { id: 62, name: '雷山小过', level: 'neutral', levelName: '中平 · 中签', verse: '山上有雷，小过。\n君子以行过乎恭，丧过乎哀。', interpret: '雷在山上，小有过越。小事可过，大事宜中。宜谦恭行事，不可过度。' },
+    { id: 63, name: '水火既济', level: 'good', levelName: '上吉 · 上签', verse: '水在火上，既济。\n君子以思患而豫防之。', interpret: '水火相交，事已成就。功成名就之时，宜思患预防。盛极必衰，居安思危。' },
+    { id: 64, name: '火水未济', level: 'neutral', levelName: '中平 · 中签', verse: '火在水上，未济。\n君子以慎辨物居方。', interpret: '火在水上，事尚未成。革命尚未成功，仍需努力。宜审慎行事，辨物居方。' }
+  ];
+
+  // ── DOM refs ──
+  const tubeWrapper = document.getElementById('tubeWrapper');
+  const sticksVisible = document.getElementById('sticksVisible');
+  const shakeHint = document.getElementById('shakeHint');
+  const progressDots = document.getElementById('progressDots');
+  const dots = progressDots.querySelectorAll('.progress-dot');
+  const resultArea = document.getElementById('resultArea');
+  const resultLevel = document.getElementById('resultLevel');
+  const resultName = document.getElementById('resultName');
+  const resultNumber = document.getElementById('resultNumber');
+  const resultVerse = document.getElementById('resultVerse');
+  const resultInterpretation = document.getElementById('resultInterpretation');
+  const resultReward = document.getElementById('resultReward');
+  const btnRetry = document.getElementById('btnRetry');
+  const yearlyFortune = document.getElementById('yearlyFortune');
+
+  // ── State ──
+  let shakeCount = 0;
+  let threshold = 0;
+  let isAnimating = false;
+  let fortuneRevealed = false;
+
+  function randomThreshold() {
+    return 1 + Math.floor(Math.random() * 3); // 1-3次出签
+  }
+
+  function resetState() {
+    shakeCount = 0;
+    threshold = randomThreshold();
+    isAnimating = false;
+    fortuneRevealed = false;
+    updateDots();
+    sticksVisible.classList.remove('rising', 'rising-more', 'popping');
+    shakeHint.textContent = '轻点签筒，摇动求签';
+    shakeHint.classList.remove('urgent');
+    resultArea.classList.remove('visible');
+    btnRetry.style.display = 'none';
+    yearlyFortune.style.display = 'none';
+    tubeWrapper.classList.remove('shake-light', 'shake-medium', 'shake-heavy', 'shake-final', 'stick-out');
+    // Force reflow
+    void tubeWrapper.offsetWidth;
+  }
+
+  function updateDots() {
+    const progress = Math.min(shakeCount / threshold, 1);
+    const totalDots = dots.length;
+    const filledDots = Math.floor(progress * totalDots);
+
+    dots.forEach((dot, i) => {
+      dot.classList.remove('filled', 'peak');
+      if (i < filledDots - 1 || (filledDots === totalDots && i < totalDots)) {
+        dot.classList.add('filled');
+      } else if (i === filledDots - 1 && progress < 1) {
+        dot.classList.add('filled');
+      }
+    });
+
+    // Last dot pulsing when close
+    if (shakeCount >= threshold - 2 && shakeCount < threshold && filledDots > 0) {
+      dots[Math.min(filledDots, totalDots - 1)].classList.add('peak');
+    }
+  }
+
+  function getShakeClass() {
+    const ratio = shakeCount / threshold;
+    if (ratio < 0.3) return 'shaking-light';
+    if (ratio < 0.6) return 'shaking-medium';
+    if (ratio < 1) return 'shaking-heavy';
+    return 'shaking-final';
+  }
+
+  function updateSticksPosition() {
+    const ratio = shakeCount / threshold;
+    sticksVisible.classList.remove('rising', 'rising-more', 'popping');
+    if (ratio >= 0.9) {
+      sticksVisible.classList.add('popping');
+    } else if (ratio >= 0.6) {
+      sticksVisible.classList.add('rising-more');
+    } else if (ratio >= 0.3) {
+      sticksVisible.classList.add('rising');
+    }
+  }
+
+  function updateHint() {
+    const ratio = shakeCount / threshold;
+    shakeHint.classList.remove('urgent');
+    if (ratio >= 0.9) {
+      shakeHint.textContent = '快出来了！再摇一下！';
+      shakeHint.classList.add('urgent');
+    } else if (ratio >= 0.6) {
+      shakeHint.textContent = '竹签在上升……';
+    } else if (ratio >= 0.3) {
+      shakeHint.textContent = '继续摇动……';
+    } else if (shakeCount > 0) {
+      shakeHint.textContent = '咔嗒、咔嗒……';
+    }
+  }
+
+  function spawnParticles(x, y) {
+    for (let i = 0; i < 12; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = (Math.PI * 2 * i) / 12;
+      const dist = 30 + Math.random() * 60;
+      p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(angle) * dist - 40 + 'px');
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.width = (2 + Math.random() * 4) + 'px';
+      p.style.height = p.style.width;
+      document.body.appendChild(p);
+      // Trigger animation
+      requestAnimationFrame(() => p.classList.add('animating'));
+      // Clean up
+      setTimeout(() => p.remove(), 1100);
+    }
+  }
+
+  function createFlyStick(x, y) {
+    const stick = document.createElement('div');
+    stick.className = 'fly-stick';
+    stick.style.left = (x - 8) + 'px';
+    stick.style.top = (y - 90) + 'px';
+    document.body.appendChild(stick);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => stick.classList.add('animating'));
+    });
+
+    setTimeout(() => stick.remove(), 1600);
+  }
+
+  function populateYearlyFortune(bd) {
+    if (!bd) { yearlyFortune.style.display = 'none'; return; }
+    const year = parseInt(bd.y);
+    const zodiacs = ['猴','鸡','狗','猪','鼠','牛','虎','兔','龙','蛇','马','羊'];
+    const elements = ['金','水','木','火','土'];
+    const zodiac = zodiacs[year % 12];
+    const elem = elements[Math.floor(((year % 10) < 2 ? (year % 10) + 10 : (year % 10)) / 2) % 5];
+    const ratings = ['★☆☆☆☆','★★☆☆☆','★★★☆☆','★★★★☆','★★★★★'];
+    const oi = (year + bd.m + bd.d) % 5;
+
+    const overallTexts = [
+      '此年运势平稳，宜守不宜攻。如《易经》坤卦所言"地势坤，君子以厚德载物"，以谦逊之态待人接物，自能逢凶化吉。',
+      '今年运势渐升，如旭日初升。《易经》晋卦云"明出地上，晋"，事业与生活皆有起色。贵人隐于东南方。',
+      '此年顺遂亨通，可谓春风得意。《易经》大有卦曰"火在天上，大有"，诸事顺心。然需谨记谦卦之训，满招损，谦受益。',
+      '今年大吉大利，贵人相助，万事可期。《易经》泰卦云"天地交而万物通"，正是开拓进取之年。',
+      '此年运势略有波折，如《易经》屯卦所言"刚柔始交而难生"。守住本心，静待花开。'
+    ];
+    const careerTexts = [
+      '事业如履薄冰，需步步为营。《易经》履卦有云"履虎尾，不咥人，亨"，谨慎行事可保无虞。',
+      '职场上贵人浮现，当顺势而上。《易经》升卦曰"地中生木，升"，积累已久的努力将见回报。',
+      '事业蒸蒸日上，如日中天。《易经》丰卦云"雷电皆至，丰"，正是大展宏图之时。',
+      '工作上或有变动，却是柳暗花明。《易经》革卦曰"泽中有火，革"，变革之中藏机遇。',
+      '职场平稳，无大风大浪。《易经》恒卦云"雷风，恒"，持之以恒即是最佳策略。'
+    ];
+    const wealthTexts = [
+      '财运平平，宜开源节流。《易经》节卦有云"泽上有水，节"，当节制欲望，量入为出。',
+      '财源广进，收获颇丰。《易经》益卦曰"风雷，益"，正财偏财皆有进账。',
+      '财运亨通，意外之喜。《易经》大有卦云"其德刚健而文明"，宜把握时机。',
+      '财务方面需谨慎，防止破财。《易经》损卦曰"山下有泽，损"，当减少不必要开支。',
+      '财运稳中有升，细水长流。《易经》小畜卦云"风行天上，小畜"，积少成多。'
+    ];
+    const healthTexts = [
+      '身体健康，精力充沛。《易经》颐卦曰"山下有雷，颐"，宜注意饮食有节，作息规律。',
+      '需留意消化系统与睡眠质量。《易经》坎卦有云"习坎，重险也"，小病不可忽视。',
+      '身体状况总体尚可，但需关注旧疾。《易经》复卦曰"雷在地中，复"，宜适当休养。',
+      '健康运势良好，精力旺盛。《易经》乾卦云"天行健，君子以自强不息"，宜保持运动习惯。',
+      '需慎防季节交替时的小疾。《易经》无妄卦曰"天下雷行，物与无妄"，保持良好心态。'
+    ];
+    const loveTexts = [
+      '感情生活温馨和睦。《易经》咸卦曰"山上有泽，咸"，男女感应，心有灵犀。',
+      '情感之路或有小波折，需以柔克刚。《易经》睽卦云"上火下泽，睽"，求同存异方为上策。',
+      '桃花运势旺盛，情缘深厚。《易经》归妹卦曰"泽上有雷，归妹"，两情相悦。',
+      '感情需要更多耐心与包容。《易经》家人卦云"风自火出，家人"，家以和为贵。',
+      '感情运势平稳，相敬如宾。《易经》恒卦曰"雷风，恒"，长久之道在于互相理解。'
+    ];
+    const luckyColors = ['朱红','金黄','翠绿','天蓝','绛紫','月白','黛青','珊瑚'];
+    const luckyDirs = ['东南','正南','西南','正北','正东','西北','东北'];
+    const luckyNums = ['2','3','5','6','7','8','9','11'];
+    const hexagram = ['乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否','同人','大有','谦','豫','随','蛊','临','观'];
+
+    document.getElementById('yfSub').textContent = '生肖' + zodiac + ' · 五行属' + elem + ' · ' + bd.y + '年' + bd.monthNames[bd.m] + bd.dStr + '生';
+    document.getElementById('yfOverall').textContent = ratings[oi];
+    document.getElementById('yfOverallText').textContent = overallTexts[oi];
+    document.getElementById('yfCareer').textContent = ratings[(oi + 1) % 5];
+    document.getElementById('yfCareerText').textContent = careerTexts[(year + bd.m) % 5];
+    document.getElementById('yfWealth').textContent = ratings[(oi + 2) % 5];
+    document.getElementById('yfWealthText').textContent = wealthTexts[(year + bd.d) % 5];
+    document.getElementById('yfHealth').textContent = ratings[(oi + 3) % 5];
+    document.getElementById('yfHealthText').textContent = healthTexts[(bd.m + bd.d) % 5];
+    document.getElementById('yfLove').textContent = ratings[(oi + bd.m) % 5];
+    document.getElementById('yfLoveText').textContent = loveTexts[(year + bd.m + bd.d) % 5];
+    document.getElementById('yfHexagram').textContent = hexagram[(year + bd.m + bd.d) % 20] + '卦 · 值年神煞';
+    document.getElementById('yfMeta').innerHTML =
+      '<span>幸运色：' + luckyColors[(year + bd.m) % luckyColors.length] + '</span>' +
+      '<span>吉方：' + luckyDirs[(year + bd.d) % luckyDirs.length] + '</span>' +
+      '<span>幸运数：' + luckyNums[(bd.m + bd.d) % luckyNums.length] + '</span>';
+
+    yearlyFortune.style.display = '';
+  }
+
+  function revealFortune() {
+    fortuneRevealed = true;
+    const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+
+    // Level class
+    resultLevel.className = 'result-level';
+    switch (fortune.level) {
+      case 'great': resultLevel.classList.add('great'); break;
+      case 'good': resultLevel.classList.add('good'); break;
+      case 'neutral': resultLevel.classList.add('neutral'); break;
+      case 'caution': resultLevel.classList.add('caution'); break;
+    }
+
+    resultLevel.textContent = fortune.levelName;
+    resultName.textContent = '第' + fortune.id + '卦 · ' + fortune.name;
+    resultNumber.textContent = birthInfo;
+    resultVerse.textContent = fortune.verse;
+    resultInterpretation.textContent = fortune.interpret;
+
+    // Reward guidance — different text per level with id-based variation
+    const rewardTexts = {
+      great: [
+        '卦象大吉，随心赞赏，福泽绵长',
+        '吉星高照，随心赞赏，万事顺遂',
+        '上上之签，随心赞赏，好运连连',
+        '天赐良缘，随心赞赏，喜从天降'
+      ],
+      good: [
+        '吉兆已现，随心赞赏，锦上添花',
+        '运势上扬，随心赞赏，喜上加喜',
+        '祥瑞临门，随心赞赏，顺风顺水',
+        '好运已至，随心赞赏，福气盈盈'
+      ],
+      neutral: [
+        '心诚则灵，随心赞赏，转危为安',
+        '平淡是真，随心赞赏，福至心灵',
+        '守正待时，随心赞赏，吉人天相',
+        '机缘暗藏，随心赞赏，柳暗花明'
+      ],
+      caution: [
+        '破财消灾，随心赞赏，厄运退散',
+        '否极泰来，随心赞赏，转运化吉',
+        '以舍为得，随心赞赏，阴霾尽散',
+        '低谷将尽，随心赞赏，拨云见日'
+      ]
+    };
+    const texts = rewardTexts[fortune.level];
+    resultReward.textContent = texts[fortune.id % texts.length];
+
+    resultArea.classList.add('visible');
+    btnRetry.style.display = 'inline-block';
+    populateYearlyFortune(birthData);
+    shakeHint.textContent = '';
+    shakeHint.classList.remove('urgent');
+  }
+
+  function shake() {
+    if (isAnimating || fortuneRevealed) return;
+    isAnimating = true;
+
+    shakeCount++;
+    updateDots();
+    updateSticksPosition();
+    updateHint();
+
+    const shakeClass = getShakeClass();
+    tubeWrapper.classList.add(shakeClass);
+
+    // Tube recoil effect
+    if (shakeCount >= threshold) {
+      // Final shake - stick flies out!
+      const tubeRect = tubeWrapper.getBoundingClientRect();
+      const stickX = tubeRect.left + tubeRect.width / 2;
+      const stickY = tubeRect.top + 20;
+
+      // Spawn particles at tube top
+      spawnParticles(stickX, stickY);
+
+      // Create flying stick
+      setTimeout(() => createFlyStick(stickX, stickY), 150);
+
+      // Tube recoil
+      setTimeout(() => {
+        tubeWrapper.classList.add('stick-out');
+      }, 300);
+
+      // Reveal fortune after animation
+      setTimeout(() => {
+        revealFortune();
+        isAnimating = false;
+      }, 800);
+    } else {
+      setTimeout(() => {
+        isAnimating = false;
+      }, 400);
+    }
+  }
+
+  // ── Event listeners ──
+  tubeWrapper.addEventListener('click', (e) => {
+    shake();
+    // Ripple effect
+    const rect = tubeWrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const ripple = document.createElement('div');
+    ripple.className = 'tap-indicator';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    tubeWrapper.appendChild(ripple);
+    requestAnimationFrame(() => ripple.classList.add('show'));
+    setTimeout(() => ripple.remove(), 750);
+  });
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      if (!birthScreen.classList.contains('hidden')) {
+        return;
+      }
+      if (dailyOverlay.classList.contains('show')) {
+        e.preventDefault();
+        dailyOverlay.classList.remove('show');
+        return;
+      }
+      if (qrOverlay.classList.contains('show')) {
+        e.preventDefault();
+        qrOverlay.classList.remove('show');
+        likeBtn.classList.remove('liked');
+        return;
+      }
+      e.preventDefault();
+      if (fortuneRevealed) {
+        dailyOverlay.classList.add('show');
+      } else {
+        shake();
+      }
+    }
+  });
+
+  btnRetry.addEventListener('click', () => {
+    dailyOverlay.classList.add('show');
+  });
+
+  // ── Birth input ──
+  const birthScreen = document.getElementById('birthScreen');
+  const birthYear = document.getElementById('birthYear');
+  const birthMonth = document.getElementById('birthMonth');
+  const birthDay = document.getElementById('birthDay');
+  const birthShi = document.getElementById('birthShi');
+  const birthSubmit = document.getElementById('birthSubmit');
+  const mainContainer = document.getElementById('mainContainer');
+  let birthInfo = '';
+  let birthData = null;
+  let calendarType = 'lunar';
+
+  // Calendar toggle
+  document.querySelectorAll('.cal-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.cal-option').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      calendarType = this.dataset.cal;
+    });
+  });
+
+  function populateDays() {
+    const m = parseInt(birthMonth.value);
+    birthDay.innerHTML = '<option value="">请选择</option>';
+    if (!m) return;
+    let maxDay = 31;
+    if ([4,6,9,11].includes(m)) maxDay = 30;
+    else if (m === 2) maxDay = 29;
+    for (let d = 1; d <= maxDay; d++) {
+      birthDay.innerHTML += '<option value="' + d + '">' + (d < 10 ? '初' : '') + (d <= 10 ? ['','一','二','三','四','五','六','七','八','九','十'][d] : d <= 19 ? '十' + ['','一','二','三','四','五','六','七','八','九'][d-10] : d === 20 ? '二十' : d <= 29 ? '廿' + ['','一','二','三','四','五','六','七','八','九'][d-20] : '三十') + '</option>';
+    }
+  }
+  birthMonth.addEventListener('change', populateDays);
+
+  // Allow only digits in year input
+  birthYear.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 4);
+  });
+
+  // Validate birth input and return parsed data
+  function validateBirth() {
+    const y = birthYear.value.trim();
+    const m = birthMonth.value;
+    const d = birthDay.value;
+    if (!y || !m || !d) {
+      // Show error on birth screen itself
+      const notice = document.querySelector('.birth-notice');
+      notice.textContent = '请填写完整的出生年月日';
+      notice.style.color = 'rgba(196,30,58,0.8)';
+      setTimeout(() => { notice.textContent = '生辰信息仅用于卜卦参考，不作留存'; notice.style.color = ''; }, 2000);
+      return null;
+    }
+    const monthNames = ['','正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+    const dn = parseInt(d);
+    const dStr = dn <= 10 ? ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十'][dn] : dn <= 19 ? '十' + ['','一','二','三','四','五','六','七','八','九'][dn-10] : dn === 20 ? '二十' : dn <= 29 ? '廿' + ['','一','二','三','四','五','六','七','八','九'][dn-20] : '三十';
+    const calLabel = calendarType === 'lunar' ? '阴历' : '阳历';
+    return { y, m: parseInt(m), d: dn, s: birthShi.value, calLabel, monthNames, dStr };
+  }
+
+  birthSubmit.addEventListener('click', () => {
+    const bd = validateBirth();
+    if (!bd) return;
+    birthData = bd;
+    birthInfo = bd.calLabel + ' ' + bd.y + '年 ' + bd.monthNames[bd.m] + bd.dStr + (bd.s ? ' ' + bd.s : '');
+    birthScreen.classList.add('hidden');
+    mainContainer.style.display = '';
+    resetState();
+  });
+
+  // Keyboard submit on Enter in year field
+  birthYear.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter') {
+      e.preventDefault();
+      birthSubmit.click();
+    }
+  });
+
+  // ── Init ──
+  populateDays();
+  resetState();
+
+  // Subtle idle animation on the tube to invite interaction
+  let idleTimeout;
+  function resetIdleTimer() {
+    clearTimeout(idleTimeout);
+    tubeWrapper.style.animation = '';
+    idleTimeout = setTimeout(() => {
+      if (!fortuneRevealed && shakeCount === 0) {
+        tubeWrapper.style.animation = 'shake-light 3s ease-in-out infinite';
+      }
+    }, 4000);
+  }
+  resetIdleTimer();
+  tubeWrapper.addEventListener('click', resetIdleTimer);
+  document.addEventListener('keydown', resetIdleTimer);
+
+  // ── Like button / QR overlay toggle ──
+  const likeBtn = document.getElementById('likeBtn');
+  const qrOverlay = document.getElementById('qrOverlay');
+
+  likeBtn.addEventListener('click', () => {
+    qrOverlay.classList.add('show');
+    likeBtn.classList.add('liked');
+  });
+
+  qrOverlay.addEventListener('click', (e) => {
+    if (e.target === qrOverlay || e.target.closest('.qr-popup')) {
+      qrOverlay.classList.remove('show');
+      likeBtn.classList.remove('liked');
+    }
+  });
+
+  const dailyOverlay = document.getElementById('dailyOverlay');
+  dailyOverlay.addEventListener('click', (e) => {
+    if (e.target === dailyOverlay || e.target.closest('.daily-card')) {
+      dailyOverlay.classList.remove('show');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
