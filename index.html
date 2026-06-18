@@ -1370,6 +1370,665 @@
 })();
 </script>
 </body>
+</html>StemBase + month - 1) % 10;
+
+    // 日柱
+    var dgz = calcDayGZ(year, month, day, isSolar);
+    var dStem = dgz % 10;
+    var dBranch = dgz % 12;
+
+    // 时柱
+    var hBranch = (shiKey && HOUR_BRANCH_MAP[shiKey] !== undefined) ? HOUR_BRANCH_MAP[shiKey] : -1;
+    var hStem = -1;
+    if (hBranch >= 0) {
+      hStem = (HOUR_STEM_BASE[dStem] + hBranch) % 10;
+    }
+
+    return {
+      year:   { stem: yStem, branch: yBranch, nayin: getNayin(yStem, yBranch) },
+      month:  { stem: mStem, branch: mBranch, nayin: getNayin(mStem, mBranch) },
+      day:    { stem: dStem, branch: dBranch, nayin: getNayin(dStem, dBranch) },
+      hour:   { stem: hStem, branch: hBranch, nayin: hStem >= 0 ? getNayin(hStem, hBranch) : '—' },
+      dayMaster: dStem,
+      gender: gender
+    };
+  }
+
+  // 十神计算 (relative to day master)
+  function getShiShen(dayStem, otherStem) {
+    var rel = (otherStem - dayStem + 10) % 10; // 0=比肩, 1=劫财, ...
+    // 生克关系
+    var wuXingDM = Math.floor(dayStem / 2);   // 日主五行组: 0=木,1=火,2=土,3=金,4=水
+    var wuXingOT = Math.floor(otherStem / 2);
+    var diff = (wuXingOT - wuXingDM + 5) % 5;
+    var sameYY = (dayStem % 2) === (otherStem % 2);
+
+    if (diff === 0) return sameYY ? '比肩' : '劫财';           // 同五行
+    if (diff === 1) return sameYY ? '食神' : '伤官';           // 我生
+    if (diff === 2) return sameYY ? '偏财' : '正财';           // 我克
+    if (diff === 3) return sameYY ? '七杀' : '正官';           // 克我
+    if (diff === 4) return sameYY ? '偏印' : '正印';           // 生我
+    return '—';
+  }
+
+  // ═══════════════════════════════════════
+  //  六十四卦签文
+  // ═══════════════════════════════════════
+  var fortunes = [
+    { id: 1,  name: '乾为天', level: 'great', levelName: '大吉 · 上上签', verse: '天行健，君子以自强不息。\n飞龙在天，利见大人。', interpret: '龙腾九天之象，万事亨通。事业有成，贵人相助，宜积极进取，大有作为。' },
+    { id: 2,  name: '坤为地', level: 'great', levelName: '大吉 · 上上签', verse: '地势坤，君子以厚德载物。\n牝马之贞，安贞吉。', interpret: '大地承载万物之象。以柔克刚，以德服人。守正不阿，终得福报。' },
+    { id: 3,  name: '水雷屯', level: 'neutral', levelName: '中平 · 中签', verse: '刚柔始交而难生，\n动乎险中，大亨贞。', interpret: '万物初生，困难重重。万事开头难，宜坚定信心，稳健前行，不可冒进。' },
+    { id: 4,  name: '山水蒙', level: 'neutral', levelName: '中平 · 中签', verse: '匪我求童蒙，童蒙求我。\n初筮告，再三渎，渎则不告。', interpret: '启蒙开智之象。虚心求教则有所得，但不可再三反复、犹豫不决。' },
+    { id: 5,  name: '水天需', level: 'good', levelName: '上吉 · 上签', verse: '云上于天，需。\n君子以饮食宴乐。', interpret: '云聚天上，待时而雨。耐心等待，时机将至。宜养精蓄锐，静待佳音。' },
+    { id: 6,  name: '天水讼', level: 'neutral', levelName: '中平 · 中签', verse: '天与水违行，讼。\n君子以作事谋始。', interpret: '天水相违，争端之象。凡事慎始慎终，避免口舌纷争。退一步海阔天空。' },
+    { id: 7,  name: '地水师', level: 'neutral', levelName: '中平 · 中签', verse: '地中有水，师。\n君子以容民畜众。', interpret: '地藏水源，聚众之象。统率之道，以德服人。众人同心，其利断金。' },
+    { id: 8,  name: '水地比', level: 'good', levelName: '上吉 · 上签', verse: '地上有水，比。\n先王以建万国，亲诸侯。', interpret: '水附大地，亲和之象。团结和睦，得道多助。宜广结善缘，合作共赢。' },
+    { id: 9,  name: '风天小畜', level: 'good', levelName: '上吉 · 上签', verse: '风行天上，小畜。\n君子以懿文德。', interpret: '风行天上，小有积蓄。厚积薄发，润物无声。宜修养品德，积蓄力量。' },
+    { id: 10, name: '天泽履', level: 'neutral', levelName: '中平 · 中签', verse: '上天下泽，履。\n君子以辩上下，定民志。', interpret: '天在上泽在下，各安其位。循礼而动，谨言慎行。脚踏实地，步步为营。' },
+    { id: 11, name: '地天泰', level: 'great', levelName: '大吉 · 上上签', verse: '天地交而万物通，\n上下交而其志同。', interpret: '天地交融，万物亨通。否极泰来，万事顺遂。事业、财运、感情皆宜。' },
+    { id: 12, name: '天地否', level: 'caution', levelName: '中下 · 下签', verse: '天地不交而万物不通。\n君子以俭德辟难。', interpret: '天地闭塞，时运不济。宜隐忍待时，节俭度日。不可荣以禄，静待转机。' },
+    { id: 13, name: '天火同人', level: 'great', levelName: '大吉 · 上上签', verse: '天与火，同人。\n君子以类族辨物。', interpret: '天火相映，志同道合。同心协力，大事可成。宜结交益友，共同奋进。' },
+    { id: 14, name: '火天大有', level: 'great', levelName: '大吉 · 上上签', verse: '火在天上，大有。\n君子以遏恶扬善。', interpret: '日正当中，丰收之象。大有所获，五谷丰登。事业财运俱佳，顺天休命。' },
+    { id: 15, name: '地山谦', level: 'great', levelName: '大吉 · 上上签', verse: '地中有山，谦。\n君子以裒多益寡，称物平施。', interpret: '高山隐于地中，谦逊之德。满招损，谦受益。谦虚待人，万事可成。' },
+    { id: 16, name: '雷地豫', level: 'good', levelName: '上吉 · 上签', verse: '雷出地奋，豫。\n先王以作乐崇德。', interpret: '春雷震地，万物欢欣。顺势而为，喜乐安康。宜庆祝成就，分享喜悦。' },
+    { id: 17, name: '泽雷随', level: 'good', levelName: '上吉 · 上签', verse: '泽中有雷，随。\n君子以向晦入宴息。', interpret: '雷入泽中，相随而动。随机应变，顺势而行。宜灵活变通，不可固执。' },
+    { id: 18, name: '山风蛊', level: 'caution', levelName: '中下 · 下签', verse: '山下有风，蛊。\n君子以振民育德。', interpret: '风入山下，积弊之象。革除旧弊，拨乱反正。宜整顿内务，除旧布新。' },
+    { id: 19, name: '地泽临', level: 'great', levelName: '大吉 · 上上签', verse: '泽上有地，临。\n君子以教思无穷，容保民无疆。', interpret: '泽水近地，恩泽降临。居高临下，恩威并施。宜亲近民众，广施恩德。' },
+    { id: 20, name: '风地观', level: 'neutral', levelName: '中平 · 中签', verse: '风行地上，观。\n先王以省方观民设教。', interpret: '风行大地，观察之象。审时度势，见微知著。宜冷静观察，三思后行。' },
+    { id: 21, name: '火雷噬嗑', level: 'neutral', levelName: '中平 · 中签', verse: '雷电交加，噬嗑。\n先王以明罚敕法。', interpret: '雷电交击，破除阻碍。果断决策，快刀斩乱麻。宜明辨是非，当断则断。' },
+    { id: 22, name: '山火贲', level: 'good', levelName: '上吉 · 上签', verse: '山下有火，贲。\n君子以明庶政，无敢折狱。', interpret: '火照山下，文饰之象。外在修饰，内在充实。宜注重形象，内外兼修。' },
+    { id: 23, name: '山地剥', level: 'caution', levelName: '下下 · 下下签', verse: '山附于地，剥。\n上以厚下安宅。', interpret: '山崩于地，剥落之象。小人道长，君子道消。宜顺应时势，厚待下属，稳固根基。' },
+    { id: 24, name: '地雷复', level: 'good', levelName: '上吉 · 上签', verse: '雷在地中，复。\n先王以至日闭关。', interpret: '一阳来复，万象更新。冬至阳生，希望重生。宜休养生息，积蓄力量，静待春来。' },
+    { id: 25, name: '天雷无妄', level: 'good', levelName: '上吉 · 上签', verse: '天下雷行，物与无妄。\n先王以茂对时育万物。', interpret: '雷行天下，真实无妄。诚心正意，不可有私。宜真诚待人，脚踏实地。' },
+    { id: 26, name: '山天大畜', level: 'great', levelName: '大吉 · 上上签', verse: '天在山中，大畜。\n君子以多识前言往行。', interpret: '天藏山中，大有积蓄。厚积薄发，蓄势待时。宜博学多闻，充实自我。' },
+    { id: 27, name: '山雷颐', level: 'neutral', levelName: '中平 · 中签', verse: '山下有雷，颐。\n君子以慎言语，节饮食。', interpret: '雷在山下，颐养之象。养生之道，谨言慎食。宜修身养性，节制有度。' },
+    { id: 28, name: '泽风大过', level: 'caution', levelName: '中下 · 下签', verse: '泽灭木，大过。\n君子以独立不惧，遁世无闷。', interpret: '泽水淹木，过甚之象。物极必反，过犹不及。宜独立自主，不畏艰难。' },
+    { id: 29, name: '坎为水', level: 'caution', levelName: '中下 · 下签', verse: '水洊至，习坎。\n君子以常德行，习教事。', interpret: '水流重叠，险难重重。身处困境，宜坚守正道。以诚待险，终能化险为夷。' },
+    { id: 30, name: '离为火', level: 'good', levelName: '上吉 · 上签', verse: '明两作，离。\n大人以继明照于四方。', interpret: '光明相续，照耀四方。依附正道，光明磊落。宜借势而行，柔顺中正。' },
+    { id: 31, name: '泽山咸', level: 'great', levelName: '大吉 · 上上签', verse: '山上有泽，咸。\n君子以虚受人。', interpret: '泽在山巅，感应之象。心有灵犀，两情相悦。宜虚怀若谷，以诚感人。' },
+    { id: 32, name: '雷风恒', level: 'good', levelName: '上吉 · 上签', verse: '雷风相与，恒。\n君子以立不易方。', interpret: '雷风相随，永恒之道。持之以恒，方得始终。宜坚守正道，不可半途而废。' },
+    { id: 33, name: '天山遁', level: 'neutral', levelName: '中平 · 中签', verse: '天下有山，遁。\n君子以远小人，不恶而严。', interpret: '山高于天，退避之象。适时而退，明哲保身。宜远离小人，不与为恶。' },
+    { id: 34, name: '雷天大壮', level: 'great', levelName: '大吉 · 上上签', verse: '雷在天上，大壮。\n君子以非礼弗履。', interpret: '雷震于天，强盛之象。力量强大，宜行正道。不可恃强凌弱，非礼勿动。' },
+    { id: 35, name: '火地晋', level: 'great', levelName: '大吉 · 上上签', verse: '明出地上，晋。\n君子以自昭明德。', interpret: '日出地上，晋升之象。前程似锦，步步高升。宜自我彰显，发光发热。' },
+    { id: 36, name: '地火明夷', level: 'caution', levelName: '中下 · 下签', verse: '明入地中，明夷。\n君子以莅众，用晦而明。', interpret: '光明入地，晦暗之象。时运不济，韬光养晦。宜隐忍守拙，静待光明。' },
+    { id: 37, name: '风火家人', level: 'good', levelName: '上吉 · 上签', verse: '风自火出，家人。\n君子以言有物而行有恒。', interpret: '风火相生，家和之象。家庭和睦，万事兴隆。宜言必有据，行必有恒。' },
+    { id: 38, name: '火泽睽', level: 'neutral', levelName: '中平 · 中签', verse: '上火下泽，睽。\n君子以同而异。', interpret: '火泽相背，乖离之象。求同存异，小事可成。宜包容差异，和而不同。' },
+    { id: 39, name: '水山蹇', level: 'caution', levelName: '中下 · 下签', verse: '山上有水，蹇。\n君子以反身修德。', interpret: '山高水险，艰难之象。前路多艰，宜反躬自省。修德以渡难关，不可强求。' },
+    { id: 40, name: '雷水解', level: 'good', levelName: '上吉 · 上签', verse: '雷雨作，解。\n君子以赦过宥罪。', interpret: '雷雨交加，困难消解。否极泰来，危机解除。宜宽恕待人，化解矛盾。' },
+    { id: 41, name: '山泽损', level: 'neutral', levelName: '中平 · 中签', verse: '山下有泽，损。\n君子以惩忿窒欲。', interpret: '山压泽上，减损之象。有失有得，损下益上。宜克制欲望，减少忿怒。' },
+    { id: 42, name: '风雷益', level: 'great', levelName: '大吉 · 上上签', verse: '风雷相与，益。\n君子以见善则迁，有过则改。', interpret: '风雷相益，增益之象。见善思齐，有过则改。宜学习进取，日新其德。' },
+    { id: 43, name: '泽天夬', level: 'neutral', levelName: '中平 · 中签', verse: '泽上于天，夬。\n君子以施禄及下，居德则忌。', interpret: '泽水上于天，决断之象。当断不断，反受其乱。宜果断决策，施恩于下。' },
+    { id: 44, name: '天风姤', level: 'neutral', levelName: '中平 · 中签', verse: '天下有风，姤。\n后以施命诰四方。', interpret: '风行天下，遇合之象。不期而遇，缘分天定。宜顺应机缘，不可强求。' },
+    { id: 45, name: '泽地萃', level: 'good', levelName: '上吉 · 上签', verse: '泽上于地，萃。\n君子以除戎器，戒不虞。', interpret: '泽水聚地，荟萃之象。精英汇聚，共谋大业。宜聚集人才，防备意外。' },
+    { id: 46, name: '地风升', level: 'great', levelName: '大吉 · 上上签', verse: '地中生木，升。\n君子以顺德，积小以高大。', interpret: '木生于地，上升之象。步步高升，积小成大。宜顺势而为，厚积薄发。' },
+    { id: 47, name: '泽水困', level: 'caution', levelName: '中下 · 下签', verse: '泽无水，困。\n君子以致命遂志。', interpret: '泽中无水，困顿之象。身处逆境，宜坚守志向。困而不失其所，终能脱困。' },
+    { id: 48, name: '水风井', level: 'neutral', levelName: '中平 · 中签', verse: '木上有水，井。\n君子以劳民劝相。', interpret: '水在木上，井养之象。取之不竭，养而不穷。宜修整基础，惠及他人。' },
+    { id: 49, name: '泽火革', level: 'good', levelName: '上吉 · 上签', verse: '泽中有火，革。\n君子以治历明时。', interpret: '水火相息，变革之象。革故鼎新，顺应天时。宜除旧布新，把握时机。' },
+    { id: 50, name: '火风鼎', level: 'great', levelName: '大吉 · 上上签', verse: '木上有火，鼎。\n君子以正位凝命。', interpret: '木火相烹，鼎新之象。革故鼎新，气象万千。宜端正位置，凝聚使命。' },
+    { id: 51, name: '震为雷', level: 'neutral', levelName: '中平 · 中签', verse: '洊雷，震。\n君子以恐惧修省。', interpret: '雷声重叠，震动之象。临危不乱，恐惧修省。宜戒惧谨慎，反躬自省。' },
+    { id: 52, name: '艮为山', level: 'neutral', levelName: '中平 · 中签', verse: '兼山，艮。\n君子以思不出其位。', interpret: '两山并立，静止之象。当止则止，思不出位。宜安守本分，适可而止。' },
+    { id: 53, name: '风山渐', level: 'good', levelName: '上吉 · 上签', verse: '山上有木，渐。\n君子以居贤德善俗。', interpret: '木生山上，渐进之象。循序渐进，不可急躁。宜积德累善，水到渠成。' },
+    { id: 54, name: '雷泽归妹', level: 'neutral', levelName: '中平 · 中签', verse: '泽上有雷，归妹。\n君子以永终知敝。', interpret: '雷震泽上，婚嫁之象。婚姻大事，宜慎始终。知敝则能永终，不可草率。' },
+    { id: 55, name: '雷火丰', level: 'great', levelName: '大吉 · 上上签', verse: '雷电皆至，丰。\n君子以折狱致刑。', interpret: '雷电交至，丰盛之象。盛大之时，宜明断是非。日中则昃，宜居安思危。' },
+    { id: 56, name: '火山旅', level: 'neutral', levelName: '中平 · 中签', verse: '山上有火，旅。\n君子以明慎用刑而不留狱。', interpret: '火在山上，旅行之象。客居在外，宜谨慎行事。匆匆过客，得失随缘。' },
+    { id: 57, name: '巽为风', level: 'good', levelName: '上吉 · 上签', verse: '随风，巽。\n君子以申命行事。', interpret: '风行草偃，柔顺之象。顺势而为，柔能克刚。宜谦逊待人，申命行事。' },
+    { id: 58, name: '兑为泽', level: 'great', levelName: '大吉 · 上上签', verse: '丽泽，兑。\n君子以朋友讲习。', interpret: '两泽相连，喜悦之象。朋友讲习，互相切磋。宜广交益友，共享欢乐。' },
+    { id: 59, name: '风水涣', level: 'neutral', levelName: '中平 · 中签', verse: '风行水上，涣。\n先王以享于帝，立庙。', interpret: '风行水上，涣散之象。分离之后，重新凝聚。宜团结人心，聚合力量。' },
+    { id: 60, name: '水泽节', level: 'neutral', levelName: '中平 · 中签', verse: '泽上有水，节。\n君子以制数度，议德行。', interpret: '泽上有水，节制之象。凡事有度，过犹不及。宜节制欲望，遵守规矩。' },
+    { id: 61, name: '风泽中孚', level: 'good', levelName: '上吉 · 上签', verse: '泽上有风，中孚。\n君子以议狱缓死。', interpret: '风行泽上，诚信之象。内心诚信，感化他人。宜以诚待人，信及豚鱼。' },
+    { id: 62, name: '雷山小过', level: 'neutral', levelName: '中平 · 中签', verse: '山上有雷，小过。\n君子以行过乎恭，丧过乎哀。', interpret: '雷在山上，小有过越。小事可过，大事宜中。宜谦恭行事，不可过度。' },
+    { id: 63, name: '水火既济', level: 'good', levelName: '上吉 · 上签', verse: '水在火上，既济。\n君子以思患而豫防之。', interpret: '水火相交，事已成就。功成名就之时，宜思患预防。盛极必衰，居安思危。' },
+    { id: 64, name: '火水未济', level: 'neutral', levelName: '中平 · 中签', verse: '火在水上，未济。\n君子以慎辨物居方。', interpret: '火在水上，事尚未成。革命尚未成功，仍需努力。宜审慎行事，辨物居方。' }
+  ];
+
+  // ═══════════════════════════════════════
+  //  古典命理文本解读
+  // ═══════════════════════════════════════
+  // 日主五行 → 命格解读
+  var MASTER_DESTINY = {
+    '甲木': { nature: '甲木参天，为阳木，如苍天大树，挺拔向上，性格刚直不阿，仁德宽厚。', classic: '《滴天髓》云："甲木参天，脱胎要火。春不容金，秋不容土。火炽乘龙，水宕骑虎。地润天和，植立千古。"' },
+    '乙木': { nature: '乙木柔韧，为阴木，如藤萝花草，柔中带刚，性格温和细腻，善于变通。', classic: '《滴天髓》云："乙木虽柔，刲羊解牛。怀丁抱丙，跨凤乘猴。虚湿之地，骑马亦忧。藤萝系甲，可春可秋。"' },
+    '丙火': { nature: '丙火猛烈，为阳火，如烈日当空，光明磊落，性格热情奔放，气度恢宏。', classic: '《滴天髓》云："丙火猛烈，欺霜侮雪。能煅庚金，逢辛反怯。土众成慈，水猖显节。虎马犬乡，甲来焚灭。"' },
+    '丁火': { nature: '丁火柔中，为阴火，如灯烛星光，虽不猛烈但持续有恒，性格内敛而执着。', classic: '《滴天髓》云："丁火柔中，内性昭融。抱乙而孝，合壬而忠。旺而不烈，衰而不穷。如有嫡母，可秋可冬。"' },
+    '戊土': { nature: '戊土固重，为阳土，如城墙大地，厚重沉稳，性格诚实守信，包容万物。', classic: '《滴天髓》云："戊土固重，既中且正。静翕动辟，万物司命。水润物生，火燥物病。若在艮坤，怕冲宜静。"' },
+    '己土': { nature: '己土卑湿，为阴土，如田园之土，滋养万物，性格温厚谦逊，善于培育。', classic: '《滴天髓》云："己土卑湿，中正蓄藏。不愁木盛，不畏水狂。火少火晦，金多金光。若要物旺，宜助宜帮。"' },
+    '庚金': { nature: '庚金带煞，为阳金，如刀斧利器，刚健果断，性格刚毅果敢，不畏艰难。', classic: '《滴天髓》云："庚金带煞，刚健为最。得水而清，得火而锐。土润则生，土干则脆。能赢甲兄，输于乙妹。"' },
+    '辛金': { nature: '辛金温润，为阴金，如珠玉首饰，清秀玲珑，性格细腻敏感，追求完美。', classic: '《滴天髓》云："辛金软弱，温润而清。畏土之叠，乐水之盈。能扶社稷，能救生灵。热则喜母，寒则喜丁。"' },
+    '壬水': { nature: '壬水通河，为阳水，如江河湖海，气势磅礴，性格豁达大度，聪慧机敏。', classic: '《滴天髓》云："壬水通河，能泄金气。刚中之德，周流不滞。通根透癸，冲天奔地。化则有情，从则相济。"' },
+    '癸水': { nature: '癸水至阴，为阴水，如雨露甘霖，润物无声，性格沉静内敛，以柔克刚。', classic: '《滴天髓》云："癸水至弱，达于天津。得龙而运，功化斯神。不愁火土，不论庚辛。合戊见火，化象斯真。"' }
+  };
+
+  // 根据八字生成各维度解读
+  function generateDestinyReadings(bazi) {
+    var dm = bazi.dayMaster;
+    var tg = TIAN_GAN[dm];
+    var wxDM = WU_XING_TG[dm];
+    var key = tg + wxDM;
+    var masterKey = Object.keys(MASTER_DESTINY).find(function(k) { return k.indexOf(tg) === 0; });
+    var masterInfo = masterKey ? MASTER_DESTINY[masterKey] : null;
+
+    // 五行统计
+    var wxCount = [0,0,0,0,0]; // 金木水火土
+    [bazi.year, bazi.month, bazi.day, bazi.hour].forEach(function(p) {
+      if (p.stem >= 0) {
+        var wi = ['金','木','水','火','土'].indexOf(WU_XING_TG[p.stem]);
+        if (wi >= 0) wxCount[wi]++;
+        wi = ['金','木','水','火','土'].indexOf(WU_XING_DZ[p.branch]);
+        if (wi >= 0 && p.branch >= 0) wxCount[wi]++;
+      }
+    });
+
+    // 日主强弱判断 (简化: 看五行数量)
+    var dmCount = wxCount[['金','木','水','火','土'].indexOf(wxDM)];
+    var isWeak = dmCount <= 2;
+
+    // 命格等级：中和为贵，过强或过弱次之
+    var destinyLevel, destinyStars;
+    if (dmCount >= 5) { destinyLevel = '日主强旺，根基深厚'; destinyStars = '★★★★☆'; }
+    else if (dmCount >= 3) { destinyLevel = '日主中和，不偏不倚'; destinyStars = '★★★★★'; }
+    else if (dmCount >= 2) { destinyLevel = '日主偏弱，需印比扶助'; destinyStars = '★★★☆☆'; }
+    else { destinyLevel = '日主较弱，宜顺势从格'; destinyStars = '★★☆☆☆'; }
+
+    // 事业解读 (text + matching stars)
+    var careerItems = [
+      { text: '命中官印相生，宜从公职或管理岗位。《三命通会》曰："官星得地，贵气扶身"，仕途顺遂，宜脚踏实地。', stars: '★★★★☆' },
+      { text: '命中食伤生财，适合经商或技术行业。《渊海子平》云："食神生财，富贵自然来"，宜发挥专长。', stars: '★★★★★' },
+      { text: '命中财官双美，事业可得贵人提携。《滴天髓》曰："何知其人贵，官星有理"，宜把握机遇。', stars: '★★★★★' },
+      { text: '命中比劫重重，宜与人合伙创业。《穷通宝鉴》云："比肩帮身，众人拾柴火焰高"。', stars: '★★★☆☆' },
+      { text: '命中印星旺相，利于学术研究或文教事业。《三命通会》云："印绶得时，文贵显达"。', stars: '★★★★☆' }
+    ];
+
+    // 财运解读 (text + matching stars)
+    var wealthItems = [
+      { text: '财星有气，正财稳定，偏财亦有惊喜。《渊海子平》云："财星归库，金银满屋"，宜稳健理财。', stars: '★★★★★' },
+      { text: '食伤生财，以技艺谋财，财源不断。《滴天髓》曰："食神制杀，英雄独压万人"，一技之长可致富。', stars: '★★★★☆' },
+      { text: '财旺身弱，财来财去难以留存。《三命通会》曰："财多身弱，富屋贫人"，宜量入为出。', stars: '★★☆☆☆' },
+      { text: '命中财星不显，但印星得地，以德养财。《穷通宝鉴》云："印绶护身，不富亦贵"。', stars: '★★★☆☆' },
+      { text: '比劫夺财，需防合伙失利或朋友借贷。《渊海子平》云："比劫重重，财散人离"，宜独立经营。', stars: '★★☆☆☆' }
+    ];
+
+    // 健康解读 (text + matching stars)
+    var healthItems = [
+      { text: '五行流通，气血调和，体质尚佳。《黄帝内经》云："阴平阳秘，精神乃治"，宜保持良好作息。', stars: '★★★★★' },
+      { text: '木火偏旺，需注意肝胆与心脑血管。《渊海子平》云："木多火炽，燥热伤身"，注意情绪调适。', stars: '★★★☆☆' },
+      { text: '金水偏旺，需注意肺肾与关节。《滴天髓》曰："金寒水冷，气血不畅"，宜多运动保暖。', stars: '★★★☆☆' },
+      { text: '土气不足，脾胃消化需多加调理。《三命通会》云："土虚木乘，脾胃不和"，饮食有节。', stars: '★★☆☆☆' },
+      { text: '火土偏燥，需注意上火与皮肤问题。《穷通宝鉴》云："火炎土燥，阴虚火旺"，多食清润之物。', stars: '★★☆☆☆' }
+    ];
+
+    // 感情解读 (text + matching stars)
+    var loveItems = [
+      { text: '命带天喜桃花，感情生活丰富多彩。《三命通会》云："天喜临宫，姻缘早成"，良缘自至。', stars: '★★★★★' },
+      { text: '日坐正官/正财，配偶贤良端正。《渊海子平》曰："日坐正官，良人佳配"，婚姻和美。', stars: '★★★★★' },
+      { text: '命带咸池桃花，情感经历较多波折。《滴天髓》云："咸池荡漾，情路多舛"，宜珍惜眼前人。', stars: '★★★☆☆' },
+      { text: '日柱伏吟，感情上容易互相牵制。《穷通宝鉴》云："伏吟反吟，啼泪淋淋"，多些包容。', stars: '★★☆☆☆' },
+      { text: '比劫争合，需防感情中出现竞争者。《三命通会》云："比肩争夫，情海风波"，以诚待人。', stars: '★★☆☆☆' }
+    ];
+
+    // 基于八字数据做偏移选择 — 每条解读自带匹配的星级
+    var seed = bazi.dayMaster * 100 + bazi.year.stem * 10 + bazi.month.stem;
+    var ci = (seed + bazi.month.branch) % careerItems.length;
+    var wi = (seed + bazi.day.branch) % wealthItems.length;
+    var hi = (seed + bazi.year.branch) % healthItems.length;
+    var li = (seed + bazi.hour.branch + 99) % loveItems.length;
+
+    return {
+      masterInfo: masterInfo,
+      destinyLevel: destinyLevel,
+      destinyStars: destinyStars,
+      wxCount: wxCount,
+      career: careerItems[ci],
+      wealth: wealthItems[wi],
+      health: healthItems[hi],
+      love:   loveItems[li]
+    };
+  }
+
+  // 生成八字表格 HTML
+  function renderBaZiChart(bazi) {
+    var pillars = [
+      { label: '年柱', p: bazi.year, shiShen: getShiShen(bazi.dayMaster, bazi.year.stem) },
+      { label: '月柱', p: bazi.month, shiShen: getShiShen(bazi.dayMaster, bazi.month.stem) },
+      { label: '日柱', p: bazi.day, shiShen: '日主', isDM: true },
+      { label: '时柱', p: bazi.hour, shiShen: bazi.hour.stem >= 0 ? getShiShen(bazi.dayMaster, bazi.hour.stem) : '—' }
+    ];
+
+    var h = '<table class="bazi-table"><tr><th></th>';
+    pillars.forEach(function(pl) { h += '<th>' + pl.label + '</th>'; });
+    h += '</tr><tr><td class="bz-label">天干</td>';
+    pillars.forEach(function(pl) {
+      var cls = pl.isDM ? ' class="bz-day-master"' : '';
+      h += '<td' + cls + '>' + (pl.p.stem >= 0 ? TIAN_GAN[pl.p.stem] : '—') + '</td>';
+    });
+    h += '</tr><tr><td class="bz-label">地支</td>';
+    pillars.forEach(function(pl) {
+      h += '<td>' + (pl.p.branch >= 0 ? DI_ZHI[pl.p.branch] : '—') + '</td>';
+    });
+    h += '</tr><tr><td class="bz-label">藏干</td>';
+    pillars.forEach(function(pl) {
+      h += '<td style="font-size:12px;color:rgba(212,168,67,0.5)">' + (pl.p.branch >= 0 ? getCangGan(pl.p.branch) : '—') + '</td>';
+    });
+    h += '</tr><tr><td class="bz-label">十神</td>';
+    pillars.forEach(function(pl) {
+      h += '<td style="font-size:13px;">' + pl.shiShen + '</td>';
+    });
+    h += '</tr><tr><td class="bz-label">纳音</td>';
+    pillars.forEach(function(pl) {
+      h += '<td class="bz-nayin">' + pl.p.nayin + '</td>';
+    });
+    h += '</tr></table>';
+
+    // 五行统计条
+    h += '<div class="bz-wuxing-bar">';
+    WU_XING_NAMES.forEach(function(wx, i) {
+      var maxC = Math.max.apply(null, bazi._readings.wxCount);
+      var pct = maxC > 0 ? Math.round(bazi._readings.wxCount[i] / maxC * 100) : 0;
+      h += '<div class="bz-wuxing-item"><div class="wx-name">' + wx + '</div><div class="wx-count">' + bazi._readings.wxCount[i] + '</div><div class="wx-bar" style="width:' + pct + '%;background:' + WU_XING_COLORS[i] + '"></div></div>';
+    });
+    h += '</div>';
+
+    return h;
+  }
+
+  // 地支藏干
+  function getCangGan(bzIdx) {
+    var cg = [
+      '癸',      // 子
+      '己癸辛',   // 丑
+      '甲丙戊',   // 寅
+      '乙',       // 卯
+      '戊乙癸',   // 辰
+      '丙戊庚',   // 巳
+      '丁己',     // 午
+      '己丁乙',   // 未
+      '庚壬戊',   // 申
+      '辛',       // 酉
+      '戊辛丁',   // 戌
+      '壬甲'      // 亥
+    ];
+    return cg[bzIdx] || '';
+  }
+
+  // ── DOM refs ──
+  var tubeWrapper = document.getElementById('tubeWrapper');
+  var sticksVisible = document.getElementById('sticksVisible');
+  var shakeHint = document.getElementById('shakeHint');
+  var progressDots = document.getElementById('progressDots');
+  var dots = progressDots.querySelectorAll('.progress-dot');
+  var resultArea = document.getElementById('resultArea');
+  var resultLevel = document.getElementById('resultLevel');
+  var resultName = document.getElementById('resultName');
+  var resultNumber = document.getElementById('resultNumber');
+  var resultVerse = document.getElementById('resultVerse');
+  var resultInterpretation = document.getElementById('resultInterpretation');
+  var resultReward = document.getElementById('resultReward');
+  var baziChart = document.getElementById('baziChart');
+  var btnRetry = document.getElementById('btnRetry');
+  var yearlyFortune = document.getElementById('yearlyFortune');
+
+  // ── State ──
+  var shakeCount = 0;
+  var threshold = 0;
+  var isAnimating = false;
+  var fortuneRevealed = false;
+
+  function randomThreshold() { return 1 + Math.floor(Math.random() * 3); }
+
+  function resetState() {
+    shakeCount = 0;
+    threshold = randomThreshold();
+    isAnimating = false;
+    fortuneRevealed = false;
+    updateDots();
+    sticksVisible.classList.remove('rising', 'rising-more', 'popping');
+    shakeHint.textContent = '轻点签筒，摇动求签';
+    shakeHint.classList.remove('urgent');
+    resultArea.classList.remove('visible');
+    btnRetry.style.display = 'none';
+    yearlyFortune.style.display = 'none';
+    baziChart.innerHTML = '';
+    tubeWrapper.classList.remove('shaking-light','shaking-medium','shaking-heavy','shaking-final','stick-out');
+    void tubeWrapper.offsetWidth;
+  }
+
+  function updateDots() {
+    var progress = Math.min(shakeCount / threshold, 1);
+    var totalDots = dots.length;
+    var filledDots = Math.floor(progress * totalDots);
+    dots.forEach(function(dot, i) {
+      dot.classList.remove('filled', 'peak');
+      if (i < filledDots - 1 || (filledDots === totalDots && i < totalDots)) dot.classList.add('filled');
+      else if (i === filledDots - 1 && progress < 1) dot.classList.add('filled');
+    });
+    if (shakeCount >= threshold - 2 && shakeCount < threshold && filledDots > 0) {
+      dots[Math.min(filledDots, totalDots - 1)].classList.add('peak');
+    }
+  }
+
+  function getShakeClass() {
+    var ratio = shakeCount / threshold;
+    if (ratio < 0.3) return 'shaking-light';
+    if (ratio < 0.6) return 'shaking-medium';
+    if (ratio < 1) return 'shaking-heavy';
+    return 'shaking-final';
+  }
+
+  function updateSticksPosition() {
+    var ratio = shakeCount / threshold;
+    sticksVisible.classList.remove('rising','rising-more','popping');
+    if (ratio >= 0.9) sticksVisible.classList.add('popping');
+    else if (ratio >= 0.6) sticksVisible.classList.add('rising-more');
+    else if (ratio >= 0.3) sticksVisible.classList.add('rising');
+  }
+
+  function updateHint() {
+    var ratio = shakeCount / threshold;
+    shakeHint.classList.remove('urgent');
+    if (ratio >= 0.9) { shakeHint.textContent = '快出来了！再摇一下！'; shakeHint.classList.add('urgent'); }
+    else if (ratio >= 0.6) shakeHint.textContent = '竹签在上升……';
+    else if (ratio >= 0.3) shakeHint.textContent = '继续摇动……';
+    else if (shakeCount > 0) shakeHint.textContent = '咔嗒、咔嗒……';
+  }
+
+  function spawnParticles(x, y) {
+    for (var i = 0; i < 12; i++) {
+      var p = document.createElement('div');
+      p.className = 'particle';
+      var angle = (Math.PI * 2 * i) / 12;
+      var dist = 30 + Math.random() * 60;
+      p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(angle) * dist - 40 + 'px');
+      p.style.left = x + 'px'; p.style.top = y + 'px';
+      p.style.width = (2 + Math.random() * 4) + 'px'; p.style.height = p.style.width;
+      document.body.appendChild(p);
+      requestAnimationFrame(function() { p.classList.add('animating'); });
+      setTimeout(function() { p.remove(); }, 1100);
+    }
+  }
+
+  function createFlyStick(x, y) {
+    var stick = document.createElement('div');
+    stick.className = 'fly-stick';
+    stick.style.left = (x - 8) + 'px';
+    stick.style.top = (y - 90) + 'px';
+    document.body.appendChild(stick);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { stick.classList.add('animating'); });
+    });
+    setTimeout(function() { stick.remove(); }, 1600);
+  }
+
+  // ── 八字命理运势展示 ──
+  function populateYearlyFortune(bazi) {
+    if (!bazi) { yearlyFortune.style.display = 'none'; return; }
+    var r = bazi._readings;
+    var dm = bazi.dayMaster;
+    var tg = TIAN_GAN[dm];
+    var wxDM = WU_XING_TG[dm];
+    var genderLabel = bazi.gender === 'male' ? '乾造（男）' : '坤造（女）';
+
+    document.getElementById('yfSub').textContent = genderLabel + ' · 日主' + tg + wxDM + ' · ' + bazi.year.stemStr + bazi.year.branchStr + '年生';
+    document.getElementById('yfOverall').textContent = r.destinyStars;
+    document.getElementById('yfOverallText').textContent = '日主' + tg + '，五行属' + wxDM + '。' + r.destinyLevel + '。' + (r.masterInfo ? r.masterInfo.nature + '\n' + r.masterInfo.classic : '');
+    document.getElementById('yfCareer').textContent = r.career.stars;
+    document.getElementById('yfCareerText').textContent = r.career.text;
+    document.getElementById('yfWealth').textContent = r.wealth.stars;
+    document.getElementById('yfWealthText').textContent = r.wealth.text;
+    document.getElementById('yfHealth').textContent = r.health.stars;
+    document.getElementById('yfHealthText').textContent = r.health.text;
+    document.getElementById('yfLove').textContent = r.love.stars;
+    document.getElementById('yfLoveText').textContent = r.love.text;
+
+    // 本命卦象: 根据日柱对应的64卦(简化:用日柱序号)
+    var hexIdx = (bazi.day.stem * 12 + bazi.day.branch) % 64;
+    var hexNames = ['乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否','同人','大有','谦','豫','随','蛊','临','观','噬嗑','贲','剥','复','无妄','大畜','颐','大过','坎','离','咸','恒','遁','大壮','晋','明夷','家人','睽','蹇','解','损','益','夬','姤','萃','升','困','井','革','鼎','震','艮','渐','归妹','丰','旅','巽','兑','涣','节','中孚','小过','既济','未济'];
+    document.getElementById('yfHexagram').textContent = hexNames[hexIdx] + '卦 · 值年神煞';
+
+    var luckyColors = ['朱红','金黄','翠绿','天蓝','绛紫','月白','黛青','珊瑚'];
+    var luckyDirs = ['东南','正南','西南','正北','正东','西北','东北'];
+    var luckyNums = ['2','3','5','6','7','8','9','11'];
+    var seed = bazi.dayMaster * 100 + bazi.year.stem * 10 + bazi.month.stem;
+    document.getElementById('yfMeta').innerHTML =
+      '<span>幸运色：' + luckyColors[seed % luckyColors.length] + '</span>' +
+      '<span>吉方：' + luckyDirs[(seed + bazi.day.branch) % luckyDirs.length] + '</span>' +
+      '<span>幸运数：' + luckyNums[(seed + bazi.month.branch) % luckyNums.length] + '</span>';
+
+    yearlyFortune.style.display = '';
+  }
+
+  function revealFortune() {
+    fortuneRevealed = true;
+
+    // 签文部分
+    var fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+    resultLevel.className = 'result-level';
+    switch (fortune.level) {
+      case 'great': resultLevel.classList.add('great'); break;
+      case 'good': resultLevel.classList.add('good'); break;
+      case 'neutral': resultLevel.classList.add('neutral'); break;
+      case 'caution': resultLevel.classList.add('caution'); break;
+    }
+    resultLevel.textContent = fortune.levelName;
+    resultName.textContent = '第' + fortune.id + '卦 · ' + fortune.name;
+    resultNumber.textContent = birthInfo;
+    resultVerse.textContent = fortune.verse;
+    resultInterpretation.textContent = fortune.interpret;
+
+    var rewardTexts = {
+      great: ['卦象大吉，随心赞赏，福泽绵长','吉星高照，随心赞赏，万事顺遂','上上之签，随心赞赏，好运连连','天赐良缘，随心赞赏，喜从天降'],
+      good: ['吉兆已现，随心赞赏，锦上添花','运势上扬，随心赞赏，喜上加喜','祥瑞临门，随心赞赏，顺风顺水','好运已至，随心赞赏，福气盈盈'],
+      neutral: ['心诚则灵，随心赞赏，转危为安','平淡是真，随心赞赏，福至心灵','守正待时，随心赞赏，吉人天相','机缘暗藏，随心赞赏，柳暗花明'],
+      caution: ['破财消灾，随心赞赏，厄运退散','否极泰来，随心赞赏，转运化吉','以舍为得，随心赞赏，阴霾尽散','低谷将尽，随心赞赏，拨云见日']
+    };
+    var texts = rewardTexts[fortune.level];
+    resultReward.textContent = texts[fortune.id % texts.length];
+
+    // 八字命盘 + 命理分析
+    if (baziResult) {
+      baziChart.innerHTML = renderBaZiChart(baziResult);
+      populateYearlyFortune(baziResult);
+    }
+
+    resultArea.classList.add('visible');
+    btnRetry.style.display = 'inline-block';
+    shakeHint.textContent = '';
+    shakeHint.classList.remove('urgent');
+  }
+
+  function shake() {
+    if (isAnimating || fortuneRevealed) return;
+    isAnimating = true;
+    shakeCount++;
+    updateDots();
+    updateSticksPosition();
+    updateHint();
+
+    var shakeClass = getShakeClass();
+    tubeWrapper.classList.add(shakeClass);
+
+    if (shakeCount >= threshold) {
+      var tubeRect = tubeWrapper.getBoundingClientRect();
+      var stickX = tubeRect.left + tubeRect.width / 2;
+      var stickY = tubeRect.top + 20;
+      spawnParticles(stickX, stickY);
+      setTimeout(function() { createFlyStick(stickX, stickY); }, 150);
+      setTimeout(function() { tubeWrapper.classList.add('stick-out'); }, 300);
+      setTimeout(function() { revealFortune(); isAnimating = false; }, 800);
+    } else {
+      setTimeout(function() { isAnimating = false; }, 400);
+    }
+  }
+
+  // ── Event listeners ──
+  tubeWrapper.addEventListener('click', function(e) {
+    shake();
+    var rect = tubeWrapper.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var ripple = document.createElement('div');
+    ripple.className = 'tap-indicator';
+    ripple.style.left = x + 'px'; ripple.style.top = y + 'px';
+    tubeWrapper.appendChild(ripple);
+    requestAnimationFrame(function() { ripple.classList.add('show'); });
+    setTimeout(function() { ripple.remove(); }, 750);
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      if (!birthScreen.classList.contains('hidden')) return;
+      if (dailyOverlay.classList.contains('show')) { e.preventDefault(); dailyOverlay.classList.remove('show'); return; }
+      if (qrOverlay.classList.contains('show')) { e.preventDefault(); qrOverlay.classList.remove('show'); likeBtn.classList.remove('liked'); return; }
+      e.preventDefault();
+      if (fortuneRevealed) { dailyOverlay.classList.add('show'); } else { shake(); }
+    }
+  });
+
+  btnRetry.addEventListener('click', function() { dailyOverlay.classList.add('show'); });
+
+  // ── Birth input ──
+  var birthScreen = document.getElementById('birthScreen');
+  var birthYear = document.getElementById('birthYear');
+  var birthMonth = document.getElementById('birthMonth');
+  var birthDay = document.getElementById('birthDay');
+  var birthShi = document.getElementById('birthShi');
+  var birthSubmit = document.getElementById('birthSubmit');
+  var mainContainer = document.getElementById('mainContainer');
+  var birthInfo = '';
+  var baziResult = null;
+  var calendarType = 'lunar';
+  var birthGender = 'male';
+
+  // Calendar toggle
+  document.querySelectorAll('.cal-option').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.cal-option').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      calendarType = this.dataset.cal;
+      populateMonths();
+      populateDays();
+    });
+  });
+
+  // Gender toggle
+  document.querySelectorAll('.gender-option').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.gender-option').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      birthGender = this.dataset.gender;
+    });
+  });
+
+  var LUNAR_MONTHS = ['','正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+  var SOLAR_MONTHS = ['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+  function populateMonths() {
+    var months = calendarType === 'solar' ? SOLAR_MONTHS : LUNAR_MONTHS;
+    birthMonth.innerHTML = '<option value="">请选择</option>';
+    for (var i = 1; i <= 12; i++) {
+      birthMonth.innerHTML += '<option value="' + i + '">' + months[i] + '</option>';
+    }
+  }
+
+  function populateDays() {
+    var m = parseInt(birthMonth.value);
+    birthDay.innerHTML = '<option value="">请选择</option>';
+    if (!m) return;
+    var maxDay = 31;
+    if ([4,6,9,11].includes(m)) maxDay = 30;
+    else if (m === 2) maxDay = 29;
+    for (var d = 1; d <= maxDay; d++) {
+      if (calendarType === 'solar') {
+        birthDay.innerHTML += '<option value="' + d + '">' + d + '日</option>';
+      } else {
+        birthDay.innerHTML += '<option value="' + d + '">' + (d < 10 ? '初' : '') + (d <= 10 ? ['','一','二','三','四','五','六','七','八','九','十'][d] : d <= 19 ? '十' + ['','一','二','三','四','五','六','七','八','九'][d-10] : d === 20 ? '二十' : d <= 29 ? '廿' + ['','一','二','三','四','五','六','七','八','九'][d-20] : '三十') + '</option>';
+      }
+    }
+  }
+  birthMonth.addEventListener('change', populateDays);
+
+  birthYear.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 4); });
+
+  function validateBirth() {
+    var y = birthYear.value.trim();
+    var m = birthMonth.value;
+    var d = birthDay.value;
+    if (!y || !m || !d) {
+      var notice = document.querySelector('.birth-notice');
+      notice.textContent = '请填写完整的出生信息';
+      notice.style.color = 'rgba(196,30,58,0.8)';
+      setTimeout(function() { notice.textContent = '生辰信息仅用于卜卦参考，不作留存'; notice.style.color = ''; }, 2000);
+      return null;
+    }
+    var dn = parseInt(d);
+    var calLabel = calendarType === 'lunar' ? '阴历' : '阳历';
+    var monthNames, dStr;
+    if (calendarType === 'solar') {
+      monthNames = SOLAR_MONTHS;
+      dStr = dn + '日';
+    } else {
+      monthNames = LUNAR_MONTHS;
+      dStr = dn <= 10 ? ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十'][dn] : dn <= 19 ? '十' + ['','一','二','三','四','五','六','七','八','九'][dn-10] : dn === 20 ? '二十' : dn <= 29 ? '廿' + ['','一','二','三','四','五','六','七','八','九'][dn-20] : '三十';
+    }
+    return { y: y, m: parseInt(m), d: dn, s: birthShi.value, calLabel: calLabel, monthNames: monthNames, dStr: dStr, gender: birthGender, isSolar: calendarType === 'solar' };
+  }
+
+  birthSubmit.addEventListener('click', function() {
+    var bd = validateBirth();
+    if (!bd) return;
+    var genderLabel = bd.gender === 'male' ? '乾造' : '坤造';
+    birthInfo = genderLabel + ' · ' + bd.calLabel + ' ' + bd.y + '年 ' + bd.monthNames[bd.m] + bd.dStr + (bd.s ? ' ' + bd.s : '');
+
+    // 计算八字
+    var yearInt = parseInt(bd.y);
+    baziResult = calcBaZi(yearInt, bd.m, bd.d, bd.s, bd.isSolar, bd.gender);
+    baziResult.year.stemStr = TIAN_GAN[baziResult.year.stem];
+    baziResult.year.branchStr = DI_ZHI[baziResult.year.branch];
+    baziResult._readings = generateDestinyReadings(baziResult);
+
+    birthScreen.classList.add('hidden');
+    mainContainer.style.display = '';
+    resetState();
+  });
+
+  birthYear.addEventListener('keydown', function(e) {
+    if (e.code === 'Enter') { e.preventDefault(); birthSubmit.click(); }
+  });
+
+  // ── Init ──
+  populateMonths();
+  populateDays();
+  resetState();
+
+  var idleTimeout;
+  function resetIdleTimer() {
+    clearTimeout(idleTimeout);
+    tubeWrapper.style.animation = '';
+    idleTimeout = setTimeout(function() {
+      if (!fortuneRevealed && shakeCount === 0) {
+        tubeWrapper.style.animation = 'shake-light 3s ease-in-out infinite';
+      }
+    }, 4000);
+  }
+  resetIdleTimer();
+  tubeWrapper.addEventListener('click', resetIdleTimer);
+  document.addEventListener('keydown', resetIdleTimer);
+
+  // ── Like button ──
+  var likeBtn = document.getElementById('likeBtn');
+  var qrOverlay = document.getElementById('qrOverlay');
+  likeBtn.addEventListener('click', function() { qrOverlay.classList.add('show'); likeBtn.classList.add('liked'); });
+  qrOverlay.addEventListener('click', function(e) {
+    if (e.target === qrOverlay || e.target.closest('.qr-popup')) { qrOverlay.classList.remove('show'); likeBtn.classList.remove('liked'); }
+  });
+
+  var dailyOverlay = document.getElementById('dailyOverlay');
+  dailyOverlay.addEventListener('click', function(e) {
+    if (e.target === dailyOverlay || e.target.closest('.daily-card')) { dailyOverlay.classList.remove('show'); }
+  });
+
+})();
+</script>
+</body>
 </html>ar(--red-dark);
     border: 1px solid var(--red);
     color: var(--text-light);
